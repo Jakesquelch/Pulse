@@ -20,5 +20,5 @@ Next time: Take a look at the updated architecure.md and features.md file then m
 Before we continue developing this and adding lots more lines of code I want to get a better grip of this project. Going to slow it right down. Want to understand things better before continuing. Feel like I may be getting a bit lost. And I want my understanding to be better before we get too deep, get completely lost, and want to stop working on this.
 
 **24th July:**
-Just been playing around with some AI stuff. Added my own skill for this project. Used the Playwright MCP and drove it through our web app and that picked out some errors. Still wanting to not really move this project forward too much for now, until the understanding is all there.
+Just been playing around with some AI stuff. Added my own skill for this project. Used the Playwright MCP and drove it through our web app and that picked out some errors. Still wanting to not really move this project forward too much for now, until the understanding is all there. Added the visual.md mermaid file which I think I will use to help me understand the architecture of this project.
 
