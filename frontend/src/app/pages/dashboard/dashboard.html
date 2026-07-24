@@ -44,7 +44,7 @@
       </p>
       <p class="value">{{ habitsDoneToday() }} of {{ habits().length }}</p>
       <div class="dots">
-        @for (habit of habits(); track habit) {
+        @for (habit of habits(); track habit.id) {
           <i [class.on]="isDoneToday(habit.completedDates)"></i>
         }
       </div>
@@ -53,7 +53,7 @@
 
   <div class="card today-card">
     <h2>Up next</h2>
-    @for (task of upNext(); track task) {
+    @for (task of upNext(); track task.id) {
       <div class="mini-task">
         <span class="flag" [class.f-high]="task.priority === 'high'" [class.f-medium]="task.priority === 'medium'" [class.f-low]="task.priority === 'low'"></span>
         {{ task.title }}

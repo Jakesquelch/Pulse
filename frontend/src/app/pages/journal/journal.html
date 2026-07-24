@@ -10,7 +10,7 @@
     </div>
   </div>
 
-  @for (entry of sortedEntries(); track entry) {
+  @for (entry of sortedEntries(); track entry.id) {
     <article class="card entry">
       <p class="entry-date">
         {{ entry.createdAt | date: 'EEE d MMM · h:mm a' }}

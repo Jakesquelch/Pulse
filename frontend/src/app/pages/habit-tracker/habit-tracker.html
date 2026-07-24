@@ -8,7 +8,7 @@
     <button class="btn" (click)="addHabit()">Add habit</button>
   </div>
 
-  @for (habit of habits(); track habit) {
+  @for (habit of habits(); track habit.id) {
     <div class="card habit-row">
       <div class="habit-top">
         <strong>{{ habit.name }}</strong>

@@ -21,7 +21,7 @@
 
   <div class="card">
     <ul class="list">
-      @for (task of sortedTasks(); track task) {
+      @for (task of sortedTasks(); track task.id) {
         <li [class.completed]="task.completed">
           <input type="checkbox" [checked]="task.completed" (change)="toggleComplete(task)" />
           @if (editingTaskId === task.id) {
