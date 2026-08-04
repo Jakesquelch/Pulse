@@ -22,3 +22,6 @@ Before we continue developing this and adding lots more lines of code I want to 
 **24th July:**
 Just been playing around with some AI stuff. Added my own skill for this project. Used the Playwright MCP and drove it through our web app and that picked out some errors. Still wanting to not really move this project forward too much for now, until the understanding is all there. Added the visual.md mermaid file which I think I will use to help me understand the architecture of this project.
 
+**4th August:**
+Goal is to fully understand where we are up to so that we can move forward with this now. 
+

@@ -9,7 +9,7 @@ So this projects goal is to be a personal productivity web application designed 
 ```bash
 cd frontend
 npm i (installs the dependencies)
-npm start (equivalent of ng serve)
+npm start (equivalent of ng serve - script in package.json)
 ```
 
 ### Technology Stack
