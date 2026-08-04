@@ -1,5 +1,5 @@
 # JakeOS
-So this projects goal is to be a personal productivity web application designed to help you manage your daily life. I've always been quite an organised individual. I like to have systems in place to help me dump information from my brain and get it down somewhere. So I have 3 core modules apart of this project, that I find useful and use day-to-day:
+So this projects goal is to be a personal productivity web application designed to help me manage my daily life. I've always been quite an organised person. I like to have systems in place to help me dump information from my brain and get it down somewhere. So I have 3 core modules apart of this project, that I find useful and use day-to-day:
 
 1. **To-Do List** - Task management with priorities and grouping
 2. **Journal** - Personal journaling 
@@ -7,9 +7,7 @@ So this projects goal is to be a personal productivity web application designed 
 
 ### Setup:
 ```bash
-cd frontend
-npm i (installs the dependencies)
-npm start (equivalent of ng serve - script in package.json)
+./run.sh
 ```
 
 ### Technology Stack
@@ -18,6 +16,5 @@ npm start (equivalent of ng serve - script in package.json)
 - **Styling:** Custom CSS
 
 ### Required Software:
-- **Node.js** (v18 or higher recommended, I am on 22.20.0)
-- **npm** (v11.6.4 or higher, I am on 11.6.4)
-- **Git** (for version control)
+- **Node.js** (v18 or higher recommended, I am on v22.20.0)
+- **npm** (11.6.4 or higher, I'm on 11.6.4)
