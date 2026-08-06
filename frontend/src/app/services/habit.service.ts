@@ -27,19 +27,19 @@ export class HabitService {
 
   addHabit(name: string) {
     const newHabit: Habit = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       name,
       completedDates: [],
     };
     this.habitsSignal.update((habits) => [...habits, newHabit]);
   }
 
-  deleteHabit(id: number) {
+  deleteHabit(id: string) {
     this.habitsSignal.update((habits) => habits.filter((habit) => habit.id !== id));
   }
 
   // Mark/unmark a habit as done on a given date.
-  toggleDate(id: number, date: string) {
+  toggleDate(id: string, date: string) {
     this.habitsSignal.update((habits) =>
       habits.map((habit) => {
         if (habit.id !== id) return habit;

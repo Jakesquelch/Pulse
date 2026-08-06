@@ -27,18 +27,18 @@ export class JournalService {
 
   addEntry(content: string) {
     const newEntry: JournalEntry = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       content,
       createdAt: new Date().toISOString(),
     };
     this.entriesSignal.update((entries) => [...entries, newEntry]);
   }
 
-  deleteEntry(id: number) {
+  deleteEntry(id: string) {
     this.entriesSignal.update((entries) => entries.filter((entry) => entry.id !== id));
   }
 
-  updateContent(id: number, content: string) {
+  updateContent(id: string, content: string) {
     this.entriesSignal.update((entries) =>
       entries.map((entry) => (entry.id === id ? { ...entry, content } : entry))
     );

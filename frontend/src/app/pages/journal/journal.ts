@@ -15,12 +15,14 @@ export class Journal {
   private journalService = inject(JournalService);
 
   newEntryContent = '';
-  editingEntryId: number | null = null;
+  editingEntryId: string | null = null;
   editEntryContent = '';
 
   // Newest entry first.
   sortedEntries = computed(() =>
-    [...this.journalService.entries()].sort((a, b) => b.id - a.id)
+    [...this.journalService.entries()].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    ),
   );
 
   addEntry() {
@@ -29,7 +31,7 @@ export class Journal {
     this.newEntryContent = '';
   }
 
-  deleteEntry(id: number) {
+  deleteEntry(id: string) {
     this.journalService.deleteEntry(id);
   }
 

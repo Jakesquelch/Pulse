@@ -45,7 +45,7 @@ export class HabitTracker {
     this.newHabitName = '';
   }
 
-  deleteHabit(id: number) {
+  deleteHabit(id: string) {
     this.habitService.deleteHabit(id);
   }
 

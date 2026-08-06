@@ -18,7 +18,7 @@ export class ToDoList {
   newTaskTitle = '';
   newTaskGroup: TaskGroup | '' = '';
   newTaskPriority: 'low' | 'medium' | 'high' = 'medium';
-  editingTaskId: number | null = null;
+  editingTaskId: string | null = null;
   editTaskTitle = '';
 
   doneCount = computed(() => this.taskService.tasks().filter((t) => t.completed).length);
@@ -40,7 +40,7 @@ export class ToDoList {
     this.newTaskPriority = 'medium';
   }
 
-  deleteTask(id: number) {
+  deleteTask(id: string) {
     this.taskService.deleteTask(id);
   }
 

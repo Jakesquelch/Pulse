@@ -5,9 +5,11 @@ const STORAGE_KEY = 'jakeos-tasks';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
-  // Only the service can write to this signal:
+  // Only the service can write to this signal (private)
+  // The below reads from my saved tasks from localStorage and puts
+  // them in the signal.
   private tasksSignal = signal<Task[]>(this.loadTasks());
-  // ...components get a read-only view of it:
+  // ...components get a read-only view of the signal:
   readonly tasks = this.tasksSignal.asReadonly();
 
   constructor() {
@@ -31,7 +33,7 @@ export class TaskService {
   // '' comes from the form's "No group" option and is stored as undefined.
   addTask(title: string, priority: Task['priority'], group?: TaskGroup | '') {
     const newTask: Task = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       title,
       completed: false,
       priority,
@@ -40,11 +42,11 @@ export class TaskService {
     this.tasksSignal.update((tasks) => [...tasks, newTask]);
   }
 
-  deleteTask(id: number) {
+  deleteTask(id: string) {
     this.tasksSignal.update((tasks) => tasks.filter((task) => task.id !== id));
   }
 
-  toggleComplete(id: number) {
+  toggleComplete(id: string) {
     this.tasksSignal.update((tasks) =>
       tasks.map((task) =>
         task.id === id ? { ...task, completed: !task.completed } : task
@@ -52,7 +54,7 @@ export class TaskService {
     );
   }
 
-  updateTitle(id: number, title: string) {
+  updateTitle(id: string, title: string) {
     this.tasksSignal.update((tasks) =>
       tasks.map((task) => (task.id === id ? { ...task, title } : task))
     );
