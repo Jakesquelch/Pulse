@@ -23,8 +23,10 @@ Before we continue developing this and adding lots more lines of code I want to 
 Just been playing around with some AI stuff. Added my own skill for this project. Used the Playwright MCP and drove it through our web app and that picked out some errors. Still wanting to not really move this project forward too much for now, until the understanding is all there. Added the visual.md mermaid file which I think I will use to help me understand the architecture of this project.
 
 **4th August:**
-Goal is to fully understand where we are up to so that we can move forward with this now. 
+Goal is to fully understand where we are up to so that we can move forward with this now.
 Checkout [this](./next-time.md) and work through it. Updating my-understanding.md along the way.
 
 **6th August:**
 Checked out an md file that had a long prompt talking me through the app and how it works etc. Made some good progress and understanding of the app on a bit of a deeper level, made some small tweaks to the code but mostly have been updating the [my-understanding](./my-understanding.md)
+Really trying my hardest to not continue developing just yet until i've looked through all the code & keep asking questions to AI, got rid of fluff, have a good understanding. This is hard to do, I'm getting a bit impatient, a bit confused, and want to just move on now. But this is actually good, and I'm learning a lot, and just being curious and letting myself go down little rabbit holes and just asking questions and jotting down notes in learns and my-understanding.
+I think for now I want to do a bit more learning. Get claude to have a look at my-understanding and my-learns and see what is next, after that, we can take a look at whats next.
