@@ -1,3 +1,0 @@
-- It's good to have a models folder and have interfaces to display the data types for components, then use the services to have specific methods. Then your components inside pages folder can call these services. This is a good pattern as it means we can share this data between all the components rather than keeping it confined to a specific component.
-
-- We can get rid of the old depracted *ngIf and *ngFor for the new @if and @for etc. As we are using angular 21, not angular 17.

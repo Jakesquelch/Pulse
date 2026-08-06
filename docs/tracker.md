@@ -1,7 +1,7 @@
 ### Tracker:
 
 **26th June:**
-I kind of vibe coded this a while back. Picking it up now but am working from the bottom up. Spending some time to learn the code, learn what's happening, and get my surroundings a bit, before I continue to do any work on this. Created the new [File](docs/my-understanding.md). I want to have more ownership over this project, understand what is going on and almost each line of code.
+I kind of vibe coded this a while back. Picking it up now but am working from the bottom up. Spending some time to learn the code, learn what's happening, and get my surroundings a bit, before I continue to do any work on this. Created the new [File](./my-understanding.md). I want to have more ownership over this project, understand what is going on and almost each line of code.
 
 Next time: Continue reading through the docs, learning how the code works, and updating my-understanding. Look through architecture.md and go file through file getting claude to explain it. Really go deep and understand.
 
@@ -24,4 +24,7 @@ Just been playing around with some AI stuff. Added my own skill for this project
 
 **4th August:**
 Goal is to fully understand where we are up to so that we can move forward with this now. 
+Checkout [this](./next-time.md) and work through it. Updating my-understanding.md along the way.
 
+**6th August:**
+Checked out an md file that had a long prompt talking me through the app and how it works etc. Made some good progress and understanding of the app on a bit of a deeper level, made some small tweaks to the code but mostly have been updating the [my-understanding](./my-understanding.md)

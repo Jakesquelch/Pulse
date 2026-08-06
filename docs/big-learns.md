@@ -1,0 +1,5 @@
+- It's good to have a models folder and have interfaces to display the data types for components, then use the services to have specific methods. Then your components inside pages folder can call these services (using inject). This is a good pattern as it means we can share this data between all the components rather than it being confined to 1 component, and things like TaskService have 1 common state so that both Dashboard and ToDoList can use it and refer to the same object (this is a singleton service + signal pattern, that works well for our app)
+
+- We can get rid of the old depracted *ngIf and *ngFor for the new @if and @for etc. As we are using angular 21, not angular 17.
+
+- Adding .claude folder for skills and setting up CLAUDE.md for system prompt (trying to make the repo handy for AI use)

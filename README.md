@@ -14,7 +14,8 @@ So this projects goal is to be a personal productivity web application designed 
 - **Frontend Framework:** Angular 21.0.1
 - **Language:** TypeScript 5.9.3
 - **Styling:** Custom CSS
+- **AI Model:** Claude Code Pro
 
 ### Required Software:
-- **Node.js** (v18 or higher recommended, I am on v22.20.0)
+- **Node.js** (v18 or higher recommended, I'm on v22.20.0)
 - **npm** (11.6.4 or higher, I'm on 11.6.4)
