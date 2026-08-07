@@ -30,3 +30,9 @@ Checkout [this](./next-time.md) and work through it. Updating my-understanding.m
 Checked out an md file that had a long prompt talking me through the app and how it works etc. Made some good progress and understanding of the app on a bit of a deeper level, made some small tweaks to the code but mostly have been updating the [my-understanding](./my-understanding.md)
 Really trying my hardest to not continue developing just yet until i've looked through all the code & keep asking questions to AI, got rid of fluff, have a good understanding. This is hard to do, I'm getting a bit impatient, a bit confused, and want to just move on now. But this is actually good, and I'm learning a lot, and just being curious and letting myself go down little rabbit holes and just asking questions and jotting down notes in learns and my-understanding.
 I think for now I want to do a bit more learning. Get claude to have a look at my-understanding and my-learns and see what is next, after that, we can take a look at whats next.
+
+**7th August:**
+Think we have a fairly good understanding now of the wider architecture and the patterns of how this project is working (in terms of the services and signals etc). I don't understand the very specific syntax stuff in the pages folder etc but I don't think that is 100% necessary right now. 
+We are going to start making some changes now, I'm going to start by writing some service tests using Vitests. 
+Through writing the service test (task.service.spec.ts) we have learnt about some flaws in our current localStorage data persistence strategy (overwrites corrupt stored data with an empty list one tick later - data gets wiped), that will be improved in the future once we add the backend. Some of our tests will fail once we change to backend (this is actually good and means we have improved problems).
+Next I will take a look at doing HabitServices spec.

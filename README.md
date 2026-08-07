@@ -10,6 +10,11 @@ So this projects goal is to be a personal productivity web application designed 
 ./run.sh
 ```
 
+### Tests (Vitest):
+```bash
+cd frontend && ng test
+```
+
 ### Technology Stack
 - **Frontend Framework:** Angular 21.0.1
 - **Language:** TypeScript 5.9.3

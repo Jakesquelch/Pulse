@@ -20,3 +20,18 @@ This file should be things that I have learnt along the way. Big or small. Vague
 - [checked] and [(ngModule)] are both ways to connect data to an input, but they differ in which way data flows and whos allowed to write
   [checked] is one-way: data -> DOM
   [(ngModel)] is two-way: data <-> DOM
+
+- "signals push notifications and pull values" (for my project that is), ok, what does that mean?
+Here I talk about 1 (a way that signals can be used) and 2 (how I use signals)
+  1. Push the value: the signal immediately hands the new array to everyone who depends on it — "here's the new list, do your thing." This is how event emitters and RxJS subjects work: next(value) delivers the value to each subscriber, right then. (this is not what I do)
+  2. What my signals do instead (pull the value): the signal pushes only a tiny, payload-free notification — a dirty flag: "what you last read from me is stale." Nothing computes yet. The actual value moves later, when a consumer runs and reads the signal — the read is the pull.
+- There is no correct way to use signals, 2 works for my project well, but in other aspects 1 is better. So the rule of thumb to file away: if losing intermediate values is acceptable — it's state; use a signal. If every occurrence matters — it's an event; use push.
+
+- "The persistence effect overwrites, never merges" (for my project that is), ok, what does that mean?
+Here I talk about 1 (a way a persistence layer can work) and 2 (how my persistence layer works)
+I currently have a localStorage persistence layer. There are 2 ways a persistence layer can work:
+  1. Merge (read-modify-write): read what's stored, apply the change to it, write the result back. "Add task X to whatever is there."
+  2. Overwrite (snapshot): ignore what's stored entirely; serialize your current in-memory state and replace the stored blob wholesale. "Storage, become a copy of me."
+- My effect() are pure overwrite. However this has problems for example if you have 2 tabs, 2 devices etc. The last writer will win and that will be the state of the data, the other stuff is lost. However, this is exactly what will change once we add the backend.
+
+- We have learnt that our current localStorage data persistence strategy isn't the best and can lead to some data being wiped if JSON is corrupted and things like that, but we will fix this when we add a backend.
