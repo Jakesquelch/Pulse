@@ -42,4 +42,11 @@ I think its true that with AI you can get stuck in kind of a never ending cycle 
 Going to continue with writing the tests (did Habit service test)
 Did a HUGE refactor of the structure of my codebase. Before I had everything ordered by type, for example I had my pages folder with the css, ts and html, then my services folder, then my models folder. Now instead of doing it by type I have structured the codebase by feature. So all the stuff for journal (the html, css, ts, test file, service, model) are all in one place now.
 Going to have a read over the docs that have all been updated, maybe create a new md file with what we are now going to do moving forward - also should I do a test file for journal?
-Ok now looking at doing the persistence-seam refactor.
+Ok now looking at doing the persistence-seam refactor. Done that.
+
+Now scaffolding the backend:
+- Create backend folder
+- setup venv and install fastAPI and uvicorn
+- create main.py
+
+Next time: wire Angular's TaskService to fetch from the API, or add POST /tasks.

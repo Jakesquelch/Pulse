@@ -19,10 +19,18 @@
 - Side note: Our app holds no state of its own — theme lives in the singleton ThemeService as a signal, and the theme picker is just "read the signal to highlight the dot, call the service to change it."
 
 **signals & to-do**
-So we understand a bit better about how the theme is changed now. Now we are going to look at how the to-do-list works end to end. So you would of course start from the user POV and type in a task and press enter. My understanding is that `addTask` is called in to-do-list.ts -> which then calls the `addTask` in the task.service.ts (which then updates the signal) -> `sortedTasks` in to-do-list.ts is then re-computed (this is triggered because we detect a change in the tasks signal via computed) -> to-do-list.html loops through sortedTasks and re-renders them -> in task.service.ts the effect is triggered by a change in the task signal, and saves the data to the localStorage. Wow, what a process.
+So we understand a bit better about how the theme is changed now. Now we are going to look at how the to-do-list works end to end. So you would of course start from the user POV and type in a task and press enter. 
+**My understanding is that `addTask` is called in to-do-list.ts -> which then calls the `addTask` in the task.service.ts (which then updates the signal) -> `sortedTasks` in to-do-list.ts is then re-computed (this is triggered because we detect a change in the tasks signal via computed) -> to-do-list.html loops through sortedTasks and re-renders them -> in task.service.ts the effect is triggered by a change in the task signal, and saves the data to the localStorage. Wow, what a process**
 
 **refactor structure**
 Changed from organising file structure from 'by type' (ie services and models folders) to 'by feature' so now we have a journal folder with all the files in there. This is the recommended approach to scale.
 
-**storage/backend changes**
-So we have had localStorage so far, and we are planning to move away from it towards using backend API. Firstly I made a change where we had duplicated code in each of the 3 services that loaded the data from the localStorage, I've moved this to one place now at persisted-signal.ts. So the effect() in the constructor and the load stuff can be deleted.
+**storage/backend changes - Moving from localStorage to REST API**
+- So we have had localStorage so far, and we are planning to move away from it towards using backend API. Firstly I made a change where we had duplicated code in each of the 3 services that loaded the data from the localStorage, I've moved this to one place now at persisted-signal.ts. So the effect() in the constructor and the load stuff can be deleted.
+- Where we are at right now:
+Right now JakeOS is one program: the Angular app, running entirely inside your browser. When it needs to remember something overnight, it uses localStorage — which is just a little per-website key-value store the browser keeps on your hard drive. The whole lifecycle of your data happens on one machine, inside one browser:
+Angular app ──▶ persistedSignal() ──▶ localStorage (a file your browser manages)
+That works, but the limits are baked in: the data exists only in that browser on that machine. Open JakeOS on your phone — empty. Clear site data — gone. There's no "your data" anywhere except that one browser profile.
+- A backend is a second, separate program that owns the data. It runs on its own — during development it'll just be another process on your laptop, started in another terminal — and it does two jobs: store data durably (in a real database) and answer questions about it. Your Angular app then stops being the keeper of the data and becomes a client: something that asks for data.
+- Today, adding a task: addTask() updates the signal → the seam's effect() fires → localStorage.setItem. 
+After: addTask() updates the signal → the seam sends POST http://localhost:8000/tasks with the task as JSON → FastAPI receives it, writes a row into the SQLite file, responds → done. Same first half, different second half — which is exactly what "seam" meant.

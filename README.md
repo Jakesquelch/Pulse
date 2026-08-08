@@ -5,7 +5,7 @@ So this projects goal is to be a personal productivity web application designed 
 2. **Journal** - Personal journaling 
 3. **Habit Tracker** - Track daily habits and build consistency 
 
-### Setup:
+### Frontend Setup:
 ```bash
 cd frontend 
 npm i
@@ -17,14 +17,23 @@ Easier alternative:
 ./run.sh
 ```
 
-### Tests (Vitest):
+### Frontend Tests (Vitest):
 ```bash
 cd frontend
 npm test (equivalent of ng test - package.json script)
 ```
 
+### Backend Setup:
+```bash
+cd backend
+source .venv/Scripts/activate (this is the command for bash terminal, might say bin instead of Scripts if the venv was created on mac/linux and not Windows)
+uvicorn main:app --reload
+```
+
 ### Technology Stack
+- **OS**: Windows
 - **Frontend Framework:** Angular 21.0.1
+- **Backend:** FastAPI Python 3.13.7
 - **Language:** TypeScript 5.9.3
 - **Styling:** Custom CSS
 - **AI Model:** Claude Code Pro
