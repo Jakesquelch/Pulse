@@ -29,9 +29,10 @@ graph TD
     JournalService -.-> JournalModel["JournalEntry<br/>journal/journal-entry.model.ts"]
     HabitService -.-> HabitModel["Habit<br/>habits/habit.model.ts"]
 
-    TaskService --> LocalStorage[("localStorage<br/>jakeos-tasks")]
-    JournalService --> LocalStorage2[("localStorage<br/>jakeos-journal")]
-    HabitService --> LocalStorage3[("localStorage<br/>jakeos-habits")]
+    TaskService --> Seam
+    JournalService --> Seam
+    HabitService --> Seam
+    Seam["persistedSignal()<br/>core/persisted-signal.ts"] --> LocalStorage[("localStorage<br/>jakeos-tasks · jakeos-journal · jakeos-habits<br/>(+ -corrupt backups)")]
     ThemeService --> LocalStorage4[("localStorage<br/>jakeos-theme")]
 
     ThemeService -->|"data-theme attr"| Styles["styles.css<br/>oat / dusk / ink / candlelit tokens"]
@@ -42,8 +43,8 @@ graph TD
     classDef model fill:#8a7a5c,stroke:#524834,color:#fff
 
     class Dashboard,ToDo,Journal,Habit page
-    class TaskService,JournalService,HabitService,ThemeService service
-    class LocalStorage,LocalStorage2,LocalStorage3,LocalStorage4 storage
+    class TaskService,JournalService,HabitService,ThemeService,Seam service
+    class LocalStorage,LocalStorage4 storage
     class TaskModel,JournalModel,HabitModel model
 ```
 
@@ -54,8 +55,10 @@ graph TD
   (`dashboard/`, `tasks/`, `habits/`, `journal/`) co-locates its page component,
   model, service, and service spec. Cross-cutting code lives in `core/`.
 - Each feature (tasks, journal, habits) follows the same pattern: a page component
-  injects a service; the service holds state in an Angular `signal`, persists it to
-  `localStorage` via an `effect`, and exposes typed model interfaces.
+  injects a service; the service holds state in a signal from `persistedSignal()`
+  (the persistence seam in `core/`), which loads from and auto-saves to
+  `localStorage` — the seam is the only code that knows the storage mechanism,
+  and is where the future backend swap happens.
 - `ThemeService` is the odd one out — it lives in `core/`, is injected directly by
   the app shell (`app.ts`) rather than a page, and drives the four CSS-variable
   palettes in `styles.css` by setting `data-theme` on `<html>`.

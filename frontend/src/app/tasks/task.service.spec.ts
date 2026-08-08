@@ -114,22 +114,9 @@ describe('TaskService', () => {
     const service = TestBed.inject(TaskService);
     expect(service.tasks()).toEqual([]);
   });
-
-  // Characterization test: this pins CURRENT behavior, not desired behavior.
-  // The load fell back to [], and the effect mirrors in-memory state wholesale —
-  // so one tick later the corrupt (possibly recoverable) bytes are gone forever.
-  // When we harden the storage layer, this test should start failing and be
-  // rewritten to assert the data is preserved instead.
-  it('overwrites corrupt stored data with an empty list one tick later (silent wipe)', () => {
-    localStorage.setItem(STORAGE_KEY, 'not json{');
-    TestBed.inject(TaskService);
-
-    // Before the flush, the corrupt bytes are still there...
-    expect(localStorage.getItem(STORAGE_KEY)).toBe('not json{');
-
-    TestBed.tick();
-
-    // ...and now they are not.
-    expect(localStorage.getItem(STORAGE_KEY)).toBe('[]');
-  });
 });
+
+// The "silent wipe" characterization test that used to live here (corrupt
+// bytes overwritten with [] one tick after startup) moved to
+// core/persisted-signal.spec.ts when persistence was extracted — and the
+// behavior it pinned is fixed there: corrupt bytes are backed up first.

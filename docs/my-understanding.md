@@ -23,3 +23,6 @@ So we understand a bit better about how the theme is changed now. Now we are goi
 
 **refactor structure**
 Changed from organising file structure from 'by type' (ie services and models folders) to 'by feature' so now we have a journal folder with all the files in there. This is the recommended approach to scale.
+
+**storage/backend changes**
+So we have had localStorage so far, and we are planning to move away from it towards using backend API. Firstly I made a change where we had duplicated code in each of the 3 services that loaded the data from the localStorage, I've moved this to one place now at persisted-signal.ts. So the effect() in the constructor and the load stuff can be deleted.

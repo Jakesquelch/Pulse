@@ -1,29 +1,16 @@
-import { effect, Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { persistedSignal } from '../core/persisted-signal';
 import { JournalEntry } from './journal-entry.model';
 
 const STORAGE_KEY = 'jakeos-journal';
 
 @Injectable({ providedIn: 'root' })
 export class JournalService {
-  // Only the service can write to this signal:
-  private entriesSignal = signal<JournalEntry[]>(this.loadEntries());
+  // Loaded from and auto-saved to storage by the seam; only the service can
+  // write to this signal:
+  private entriesSignal = persistedSignal<JournalEntry[]>(STORAGE_KEY, []);
   // ...components get a read-only view of it:
   readonly entries = this.entriesSignal.asReadonly();
-
-  constructor() {
-    effect(() => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.entriesSignal()));
-    });
-  }
-
-  private loadEntries(): JournalEntry[] {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  }
 
   addEntry(content: string) {
     const newEntry: JournalEntry = {

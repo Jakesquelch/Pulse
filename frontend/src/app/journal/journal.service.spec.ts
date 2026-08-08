@@ -105,18 +105,4 @@ describe('JournalService', () => {
     const service = TestBed.inject(JournalService);
     expect(service.entries()).toEqual([]);
   });
-
-  // Characterization test — the third copy of this pin (see task/habit specs).
-  // Three identical flaws in three services: the persistence-seam refactor
-  // should collapse all of this into one tested place.
-  it('overwrites corrupt stored data with an empty list one tick later (silent wipe)', () => {
-    localStorage.setItem(STORAGE_KEY, 'not json{');
-    TestBed.inject(JournalService);
-
-    expect(localStorage.getItem(STORAGE_KEY)).toBe('not json{');
-
-    TestBed.tick();
-
-    expect(localStorage.getItem(STORAGE_KEY)).toBe('[]');
-  });
 });

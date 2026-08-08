@@ -119,20 +119,4 @@ describe('HabitService', () => {
     const service = TestBed.inject(HabitService);
     expect(service.habits()).toEqual([]);
   });
-
-  // Characterization test, same as TaskService's: the persistence code is a
-  // copy-paste of the same pattern, so it has the same flaw — corrupt (maybe
-  // recoverable) bytes get overwritten with [] one tick after startup. That
-  // this test exists twice is itself a finding: the duplicated load/persist
-  // logic is what the upcoming persistence-seam refactor should collapse.
-  it('overwrites corrupt stored data with an empty list one tick later (silent wipe)', () => {
-    localStorage.setItem(STORAGE_KEY, 'not json{');
-    TestBed.inject(HabitService);
-
-    expect(localStorage.getItem(STORAGE_KEY)).toBe('not json{');
-
-    TestBed.tick();
-
-    expect(localStorage.getItem(STORAGE_KEY)).toBe('[]');
-  });
 });

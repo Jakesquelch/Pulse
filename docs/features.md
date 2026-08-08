@@ -136,9 +136,10 @@ Daily habit tracking over a rolling 7-day window.
 
 ### Status: ❌ NOT IMPLEMENTED (next up)
 
-Planned: Python **FastAPI** backend with **SQLite** (via SQLAlchemy), replacing the
-localStorage layer inside the services with HTTP calls. The service layer was built
-so components won't change when this happens.
+Planned: Python **FastAPI** backend with **SQLite** (via SQLAlchemy), replacing
+localStorage with HTTP calls inside the persistence seam
+(`core/persisted-signal.ts`) — one file, now that the seam refactor is done.
+Components and services won't change when this happens.
 
 - [ ] REST API (tasks first, then journal/habits)
 - [ ] Database
@@ -166,8 +167,9 @@ Vitest (jsdom) via `ng test`; specs live next to the service they test.
 - ✅ `TaskService` spec — load/add/toggle/delete/rename + persistence timing
 - ✅ `HabitService` spec — same coverage + `toggleDate` behavior
 - ✅ `JournalService` spec — same coverage + `createdAt` stamping/preservation
-- ✅ Characterization tests pinning the corrupt-localStorage silent wipe
-  (expected to fail — and be rewritten — when persistence is hardened)
+- ✅ `persistedSignal` spec — load/fallback/auto-save + corrupt-data backup
+  (replaced the three per-service "silent wipe" characterization tests when
+  the seam refactor fixed the flaw they pinned)
 - [ ] Component tests
 
 ---

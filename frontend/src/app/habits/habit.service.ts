@@ -1,29 +1,16 @@
-import { effect, Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { persistedSignal } from '../core/persisted-signal';
 import { Habit } from './habit.model';
 
 const STORAGE_KEY = 'jakeos-habits';
 
 @Injectable({ providedIn: 'root' })
 export class HabitService {
-  // Only the service can write to this signal:
-  private habitsSignal = signal<Habit[]>(this.loadHabits());
+  // Loaded from and auto-saved to storage by the seam; only the service can
+  // write to this signal:
+  private habitsSignal = persistedSignal<Habit[]>(STORAGE_KEY, []);
   // ...components get a read-only view of it:
   readonly habits = this.habitsSignal.asReadonly();
-
-  constructor() {
-    effect(() => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.habitsSignal()));
-    });
-  }
-
-  private loadHabits(): Habit[] {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  }
 
   addHabit(name: string) {
     const newHabit: Habit = {

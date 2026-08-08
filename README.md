@@ -7,12 +7,20 @@ So this projects goal is to be a personal productivity web application designed 
 
 ### Setup:
 ```bash
+cd frontend 
+npm i
+npm start (equivalent of ng serve - package.json script)
+```
+
+Easier alternative:
+```bash
 ./run.sh
 ```
 
 ### Tests (Vitest):
 ```bash
-cd frontend && ng test
+cd frontend
+npm test (equivalent of ng test - package.json script)
 ```
 
 ### Technology Stack

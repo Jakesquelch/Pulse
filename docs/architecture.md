@@ -48,6 +48,7 @@ frontend/src/app/
 │   ├── habit.service.ts          # Habit state (key: jakeos-habits)
 │   └── habit.service.spec.ts
 └── core/                         # Cross-cutting, shared by features
+    ├── persisted-signal.ts       # The persistence seam (+ spec)
     ├── theme.service.ts          # Active theme (key: jakeos-theme)
     └── util/date.ts              # toLocalDate() — local "YYYY-MM-DD" strings
 ```
@@ -63,14 +64,9 @@ Every data service follows the same shape (worth reading `task.service.ts` as th
 ```typescript
 @Injectable({ providedIn: 'root' })        // one shared instance, app-wide
 export class TaskService {
-  private tasksSignal = signal<Task[]>(this.loadTasks());  // seeded from localStorage
-  readonly tasks = this.tasksSignal.asReadonly();          // components get read-only view
-
-  constructor() {
-    effect(() => {                          // auto-save on every change
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.tasksSignal()));
-    });
-  }
+  // loaded from + auto-saved to storage by the seam:
+  private tasksSignal = persistedSignal<Task[]>('jakeos-tasks', []);
+  readonly tasks = this.tasksSignal.asReadonly();  // components get read-only view
 
   addTask(...)    { this.tasksSignal.update(tasks => [...tasks, newTask]); }
   deleteTask(id)  { this.tasksSignal.update(tasks => tasks.filter(...)); }
@@ -78,11 +74,19 @@ export class TaskService {
 }
 ```
 
+`persistedSignal()` (`core/persisted-signal.ts`) is **the persistence seam**: the
+one place that knows state lives in localStorage. It returns a signal seeded
+from storage, with an `effect()` inside that auto-saves every change. Services
+know their storage *key* but nothing about the storage *mechanism* — swapping
+localStorage for the backend API is a change to this one file.
+
 Key points:
 - **Writes are private** — components can only mutate through service methods.
 - **Updates are immutable** (`[...arr]`, `.map`, `.filter`), never in-place mutation.
-- **Saving is automatic** via `effect()`; no method needs to remember to persist.
-- **`ThemeService`** is the same pattern, but its effect writes `data-theme` onto `<html>` as well as localStorage.
+- **Saving is automatic** via the seam's `effect()`; no method needs to remember to persist.
+- **`ThemeService`** doesn't use the seam: it keeps its own `effect()`, which
+  writes `data-theme` onto `<html>` as well as localStorage (a single string,
+  not JSON — not worth routing through the seam).
 
 ## Components
 
@@ -186,13 +190,12 @@ light/dark preference; the choice persists in localStorage.
 ## Persistence Model (current)
 
 Browser localStorage, one key per service, JSON-serialized on every change,
-parsed on startup (with try/catch fallback to empty). Consequences:
+parsed on startup — all inside `core/persisted-signal.ts`. Consequences:
 per-browser/per-device, no sync, cleared with site data.
 
-Known flaw (pinned by characterization tests in the task and habit specs): if
-the stored JSON is corrupt, the load falls back to `[]` and the auto-save
-effect then overwrites the corrupt — possibly recoverable — bytes with `[]`
-one tick after startup. The identical load/persist code is copy-pasted across
-all three data services; both problems point at the same fix, a shared
-persistence seam. This is the layer the planned FastAPI backend will replace —
-see `features.md` for the roadmap.
+If stored JSON is corrupt, the seam backs the raw bytes up to
+`<key>-corrupt` before falling back to empty, so bad data never crashes the
+app and is never silently destroyed. (Earlier versions wiped corrupt data
+one tick after startup — a flaw found by characterization tests, fixed when
+the seam was extracted.) The seam is the layer the planned FastAPI backend
+will replace — see `features.md` for the roadmap.
