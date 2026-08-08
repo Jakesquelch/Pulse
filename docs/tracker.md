@@ -36,3 +36,7 @@ Think we have a fairly good understanding now of the wider architecture and the 
 We are going to start making some changes now, I'm going to start by writing some service tests using Vitests. 
 Through writing the service test (task.service.spec.ts) we have learnt about some flaws in our current localStorage data persistence strategy (overwrites corrupt stored data with an empty list one tick later - data gets wiped), that will be improved in the future once we add the backend. Some of our tests will fail once we change to backend (this is actually good and means we have improved problems).
 Next I will take a look at doing HabitServices spec.
+
+**8th August:**
+I think its true that with AI you can get stuck in kind of a never ending cycle of looking into the code very deeply, getting suggestions and learning etc. You get to a certain point where its time to move forward, I think I've got there. 
+Going to continue with writing the tests

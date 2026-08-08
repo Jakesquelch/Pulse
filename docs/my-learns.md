@@ -34,4 +34,4 @@ I currently have a localStorage persistence layer. There are 2 ways a persistenc
   2. Overwrite (snapshot): ignore what's stored entirely; serialize your current in-memory state and replace the stored blob wholesale. "Storage, become a copy of me."
 - My effect() are pure overwrite. However this has problems for example if you have 2 tabs, 2 devices etc. The last writer will win and that will be the state of the data, the other stuff is lost. However, this is exactly what will change once we add the backend.
 
-- We have learnt that our current localStorage data persistence strategy isn't the best and can lead to some data being wiped if JSON is corrupted and things like that, but we will fix this when we add a backend.
+- We have learnt that our current localStorage data persistence strategy isn't the best and can lead to some data being wiped if JSON is corrupted and things like that, but we will fix this when we add a backend. Also it doesn't work well if we have 2 tabs open, or 2 devices.
