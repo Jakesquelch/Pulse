@@ -4,7 +4,7 @@
 
 This document provides a breakdown of all features, their current implementation status, and what remains to be built.
 
-Last major update: July 2026 (redesign + all three core modules implemented).
+Last major update: August 2026 (service tests with Vitest + restructure into feature folders).
 
 ---
 
@@ -12,7 +12,7 @@ Last major update: July 2026 (redesign + all three core modules implemented).
 
 ### Status: ✅ COMPLETE
 
-The old landing page is now a proper dashboard (`pages/dashboard/`) — the home screen of the app.
+The old landing page is now a proper dashboard (`dashboard/`) — the home screen of the app.
 
 #### Implemented Features:
 - ✅ Time-of-day greeting and date
@@ -44,9 +44,9 @@ Task management with priorities, optional grouping, and persistence.
 - ✅ Empty state message
 
 ### Technical Implementation:
-- Model: `models/task.model.ts` (`id`, `title`, `description?`, `completed`, `priority`, `group?`)
-- State lives in `services/task.service.ts` — a signal, updated immutably, auto-saved to localStorage by an `effect()`
-- Component (`pages/to-do-list/`) is a thin view layer: `computed()` for sorting, methods delegate to the service
+- Model: `tasks/task.model.ts` (`id`, `title`, `description?`, `completed`, `priority`, `group?`)
+- State lives in `tasks/task.service.ts` — a signal, updated immutably, auto-saved to localStorage by an `effect()`
+- Component (`tasks/to-do-list.ts`) is a thin view layer: `computed()` for sorting, methods delegate to the service
 
 ### Future Ideas:
 - [ ] Task description in the UI (field exists in the model)
@@ -72,8 +72,8 @@ Free-form journaling — the heart of the "dump your mind" idea.
 - ✅ **Persistence via localStorage** (`jakeos-journal`)
 
 ### Technical Implementation:
-- Model: `models/journal-entry.model.ts` (`id`, `content`, `createdAt` ISO timestamp)
-- `services/journal.service.ts` — same signal + localStorage pattern as tasks
+- Model: `journal/journal-entry.model.ts` (`id`, `content`, `createdAt` ISO timestamp)
+- `journal/journal.service.ts` — same signal + localStorage pattern as tasks
 
 ### Future Ideas:
 - [ ] Tags / mood tracking
@@ -98,9 +98,9 @@ Daily habit tracking over a rolling 7-day window.
 - ✅ **Persistence via localStorage** (`jakeos-habits`)
 
 ### Technical Implementation:
-- Model: `models/habit.model.ts` (`id`, `name`, `completedDates: string[]` of local `"YYYY-MM-DD"` strings)
-- `services/habit.service.ts` — same signal + localStorage pattern
-- Local-date helper in `util/date.ts` (avoids the UTC off-by-one-day pitfall)
+- Model: `habits/habit.model.ts` (`id`, `name`, `completedDates: string[]` of local `"YYYY-MM-DD"` strings)
+- `habits/habit.service.ts` — same signal + localStorage pattern
+- Local-date helper in `core/util/date.ts` (avoids the UTC off-by-one-day pitfall)
 
 ### Future Ideas:
 - [ ] Longer history / calendar view
@@ -159,9 +159,15 @@ The new layout is desktop-oriented; the sidebar shell needs a mobile treatment.
 
 ## 🧪 Testing
 
-### Status: ❌ NOT IMPLEMENTED
+### Status: ⚠️ IN PROGRESS
 
-- [ ] Unit tests for the services (natural starting point — pure logic)
+Vitest (jsdom) via `ng test`; specs live next to the service they test.
+
+- ✅ `TaskService` spec — load/add/toggle/delete/rename + persistence timing
+- ✅ `HabitService` spec — same coverage + `toggleDate` behavior
+- ✅ Characterization tests pinning the corrupt-localStorage silent wipe
+  (expected to fail — and be rewritten — when persistence is hardened)
+- [ ] `JournalService` spec
 - [ ] Component tests
 
 ---
@@ -185,7 +191,7 @@ The new layout is desktop-oriented; the sidebar shell needs a mobile treatment.
 - **Design system / theming:** ✅ done
 - **Backend/API:** ❌ next up
 - **Authentication:** ❌
-- **Testing:** ❌
+- **Testing:** ⚠️ service specs underway (tasks + habits done, journal next)
 - **Deployment:** ❌
 
 The frontend is now a genuinely usable local-first app. The next big step is the

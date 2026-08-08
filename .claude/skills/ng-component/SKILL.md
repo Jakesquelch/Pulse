@@ -5,23 +5,27 @@ disable-model-invocation: true
 ---
 
 Create a standalone Angular component named $ARGUMENTS, following the conventions
-used by the existing page components in `src/app/pages/` (e.g. `habit-tracker`,
-`journal`, `to-do-list`, `dashboard`):
+used by the existing page components in the feature folders under `src/app/`
+(e.g. `habits/habit-tracker`, `journal/journal`, `tasks/to-do-list`,
+`dashboard/dashboard`):
 
-1. Place it in `src/app/components/<name>/` with three files: `<name>.ts`,
-   `<name>.html`, `<name>.css`. No `.component` suffix on the filename or class
-   name (e.g. `HabitTracker`, not `HabitTrackerComponent`). Note: `components/`
-   is distinct from `src/app/pages/`, which is where routed, top-level pages
-   live (`habit-tracker`, `journal`, `to-do-list`, `dashboard`). `components/`
-   is for smaller, reusable, non-routed pieces — it doesn't exist yet, so this
-   may be the first component to create it.
+1. The app is organised by feature: each feature folder under `src/app/`
+   (`dashboard/`, `tasks/`, `habits/`, `journal/`) holds its routed page
+   component plus its model, service, and spec; shared cross-cutting code lives
+   in `src/app/core/`. If the new component belongs to an existing feature,
+   place it in that feature's folder; a component shared across features goes
+   in `src/app/shared/<name>/` (doesn't exist yet — this may be the first
+   component to create it). Three files: `<name>.ts`, `<name>.html`,
+   `<name>.css`. No `.component` suffix on the filename or class name
+   (e.g. `HabitTracker`, not `HabitTrackerComponent`).
 2. `@Component` decorator: `selector: 'app-<name>'`, `standalone: true`,
    `imports: [...]` (only what the template actually uses — e.g. `CommonModule`,
    `FormsModule`, `RouterLink`), `templateUrl: './<name>.html'`,
    `styleUrl: './<name>.css'` (singular, not `styleUrls`).
 3. State:
-   - Anything that should persist or be shared belongs in a service under
-     `src/app/services/`, not the component: a private writable `signal()`
+   - Anything that should persist or be shared belongs in a service in the
+     feature's folder (e.g. `src/app/habits/habit.service.ts`), not the
+     component: a private writable `signal()`
      exposed as `readonly x = this.xSignal.asReadonly()`, with a constructor
      `effect()` that syncs it to `localStorage`. Never use RxJS `BehaviorSubject`.
    - The component injects the service with `private x = inject(XService)` and

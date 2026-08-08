@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Task } from '../models/task.model';
+import { Task } from './task.model';
 import { TaskService } from './task.service';
 
 const STORAGE_KEY = 'jakeos-tasks';

@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { Dashboard } from './pages/dashboard/dashboard';
-import { ToDoList } from './pages/to-do-list/to-do-list';
-import { Journal } from './pages/journal/journal';
-import { HabitTracker } from './pages/habit-tracker/habit-tracker';
+import { Dashboard } from './dashboard/dashboard';
+import { ToDoList } from './tasks/to-do-list';
+import { Journal } from './journal/journal';
+import { HabitTracker } from './habits/habit-tracker';
 
 export const routes: Routes = [
   { path: '', component: Dashboard },

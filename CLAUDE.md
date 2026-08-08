@@ -3,9 +3,11 @@
 ## Project overview
 
 JakeOS is a personal dashboard built with Angular 21, living in `frontend/`.
-Pages (dashboard, to-do list, journal, habit tracker) are standalone components
-under `frontend/src/app/pages/`, with shared services in `services/` and models
-in `models/`. Data persists to browser localStorage via the services. Theming
+The app is organised by feature: each feature folder under `frontend/src/app/`
+(`dashboard/`, `tasks/`, `habits/`, `journal/`) holds its standalone page
+component plus its model, service, and service spec. Cross-cutting pieces
+(`ThemeService`, date utils) live in `core/`. Data persists to browser
+localStorage via the services. Theming
 is four palettes (oat, dusk, ink, candlelit) defined as CSS custom properties
 in `frontend/src/styles.css` and switched by `ThemeService` setting
 `data-theme` on `<html>` — components must only reference the tokens, never

@@ -1,9 +1,9 @@
 import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { Habit } from '../../models/habit.model';
-import { HabitService } from '../../services/habit.service';
-import { toLocalDate } from '../../util/date';
+import { Habit } from './habit.model';
+import { HabitService } from './habit.service';
+import { toLocalDate } from '../core/util/date';
 
 @Component({
   selector: 'app-habit-tracker',

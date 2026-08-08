@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Habit } from '../models/habit.model';
+import { Habit } from './habit.model';
 import { HabitService } from './habit.service';
 
 const STORAGE_KEY = 'jakeos-habits';

@@ -2,12 +2,12 @@
 
 ## Overview
 
-JakeOS is built as a modern single-page application (SPA) using Angular's standalone component architecture, running **zoneless** (no zone.js — change detection is driven by signals). The app is structured in three layers:
+JakeOS is built as a modern single-page application (SPA) using Angular's standalone component architecture, running **zoneless** (no zone.js — change detection is driven by signals). The app is organised **by feature**: each feature folder co-locates everything that feature needs, and the same three roles repeat inside each one:
 
 ```
-pages/      →  what the user sees (thin view components)
-services/   →  state + logic (signals, persistence)
-models/     →  the shapes of the data (interfaces)
+page component   →  what the user sees (thin view)
+service (+spec)  →  state + logic (signals, persistence)
+model            →  the shape of the data (interface)
 ```
 
 Components never own shared data; they read signals from services and call service methods. Persistence is an implementation detail *inside* the services — currently localStorage, later a backend API, with no component changes needed.
@@ -31,23 +31,30 @@ Components never own shared data; they read signals from services and call servi
 frontend/src/app/
 ├── app.ts / app.html / app.css   # App shell: sidebar + router outlet
 ├── app.routes.ts                 # Route table
-├── pages/
-│   ├── dashboard/                # Home: greeting, quick capture, stats, up-next
-│   ├── to-do-list/               # Tasks
-│   ├── journal/                  # Journal entries
-│   └── habit-tracker/            # Habits + 7-day grid
-├── services/
-│   ├── task.service.ts           # Task state (key: jakeos-tasks)
-│   ├── journal.service.ts        # Entry state (key: jakeos-journal)
-│   ├── habit.service.ts          # Habit state (key: jakeos-habits)
-│   └── theme.service.ts          # Active theme (key: jakeos-theme)
-├── models/
+├── dashboard/                    # Home: greeting, quick capture, stats, up-next
+│   └── dashboard.ts/.html/.css
+├── tasks/
+│   ├── to-do-list.ts/.html/.css  # Tasks page
 │   ├── task.model.ts
+│   ├── task.service.ts           # Task state (key: jakeos-tasks)
+│   └── task.service.spec.ts
+├── journal/
+│   ├── journal.ts/.html/.css     # Journal page
 │   ├── journal-entry.model.ts
-│   └── habit.model.ts
-└── util/
-    └── date.ts                   # toLocalDate() — local "YYYY-MM-DD" strings
+│   └── journal.service.ts        # Entry state (key: jakeos-journal)
+├── habits/
+│   ├── habit-tracker.ts/.html/.css  # Habits page + 7-day grid
+│   ├── habit.model.ts
+│   ├── habit.service.ts          # Habit state (key: jakeos-habits)
+│   └── habit.service.spec.ts
+└── core/                         # Cross-cutting, shared by features
+    ├── theme.service.ts          # Active theme (key: jakeos-theme)
+    └── util/date.ts              # toLocalDate() — local "YYYY-MM-DD" strings
 ```
+
+Adding a feature means adding one folder; a feature folder importing from
+another (e.g. `dashboard/` importing the three data services) makes
+cross-feature dependencies visible in the import paths.
 
 ## The Service Pattern
 
@@ -84,48 +91,52 @@ The root component is the persistent frame: sidebar (logo, nav links via
 `routerLink`/`routerLinkActive`, theme switcher dots, date) with a `<router-outlet>`
 alongside. Pages render inside the shell, so navigation is always visible.
 
-### Dashboard (`pages/dashboard/`)
+### Dashboard (`dashboard/`)
 Injects all three data services and derives everything with `computed()`:
 task done/total + progress, journal count + last entry, habits-done-today,
 and the top-3 "Up next" tasks. Quick-capture box adds a task from the home screen.
 
-### To-Do List (`pages/to-do-list/`)
+### To-Do List (`tasks/`)
 Thin view over `TaskService`: `computed()` priority sort, inline editing,
 hover-revealed actions. Form state (inputs mid-typing) stays in the component —
 only *shared* data lives in services.
 
-### Journal (`pages/journal/`)
+### Journal (`journal/`)
 Composer + entries newest-first over `JournalService`. Entry text renders in the
 serif display font with `white-space: pre-wrap`.
 
-### Habit Tracker (`pages/habit-tracker/`)
+### Habit Tracker (`habits/`)
 Rolling 7-day grid over `HabitService`. A habit's history is
 `completedDates: string[]` of local dates; streaks are computed by walking
-backwards from today. Uses `util/date.ts` to avoid the UTC date-shift pitfall.
+backwards from today. Uses `core/util/date.ts` to avoid the UTC date-shift pitfall.
 
 ## Data Models
 
+All ids are UUID strings from `crypto.randomUUID()` (previously `Date.now()`
+numbers, which could collide if two items were created in the same millisecond).
+
 ```typescript
-// task.model.ts
+// tasks/task.model.ts
+type TaskGroup = 'fun' | 'personal' | 'work';
 interface Task {
-  id: number;                    // Date.now() at creation
+  id: string;                    // crypto.randomUUID() at creation
   title: string;
   description?: string;          // in the model, not yet in the UI
   completed: boolean;
   priority: 'low' | 'medium' | 'high';
-  group?: string;
+  group?: TaskGroup;
 }
 
-// journal-entry.model.ts
+// journal/journal-entry.model.ts
 interface JournalEntry {
-  id: number;
+  id: string;
   content: string;
   createdAt: string;             // ISO timestamp
 }
 
-// habit.model.ts
+// habits/habit.model.ts
 interface Habit {
-  id: number;
+  id: string;
   name: string;
   completedDates: string[];      // local "YYYY-MM-DD" strings
 }
@@ -176,5 +187,12 @@ light/dark preference; the choice persists in localStorage.
 
 Browser localStorage, one key per service, JSON-serialized on every change,
 parsed on startup (with try/catch fallback to empty). Consequences:
-per-browser/per-device, no sync, cleared with site data. This is the layer the
-planned FastAPI backend will replace — see `features.md` for the roadmap.
+per-browser/per-device, no sync, cleared with site data.
+
+Known flaw (pinned by characterization tests in the task and habit specs): if
+the stored JSON is corrupt, the load falls back to `[]` and the auto-save
+effect then overwrites the corrupt — possibly recoverable — bytes with `[]`
+one tick after startup. The identical load/persist code is copy-pasted across
+all three data services; both problems point at the same fix, a shared
+persistence seam. This is the layer the planned FastAPI backend will replace —
+see `features.md` for the roadmap.

@@ -20,3 +20,6 @@
 
 **signals & to-do**
 So we understand a bit better about how the theme is changed now. Now we are going to look at how the to-do-list works end to end. So you would of course start from the user POV and type in a task and press enter. My understanding is that `addTask` is called in to-do-list.ts -> which then calls the `addTask` in the task.service.ts (which then updates the signal) -> `sortedTasks` in to-do-list.ts is then re-computed (this is triggered because we detect a change in the tasks signal via computed) -> to-do-list.html loops through sortedTasks and re-renders them -> in task.service.ts the effect is triggered by a change in the task signal, and saves the data to the localStorage. Wow, what a process.
+
+**refactor structure**
+Changed from organising file structure from 'by type' (ie services and models folders) to 'by feature' so now we have a journal folder with all the files in there. This is the recommended approach to scale.

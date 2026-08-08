@@ -39,4 +39,6 @@ Next I will take a look at doing HabitServices spec.
 
 **8th August:**
 I think its true that with AI you can get stuck in kind of a never ending cycle of looking into the code very deeply, getting suggestions and learning etc. You get to a certain point where its time to move forward, I think I've got there. 
-Going to continue with writing the tests
+Going to continue with writing the tests (did Habit service test)
+Did a HUGE refactor of the structure of my codebase. Before I had everything ordered by type, for example I had my pages folder with the css, ts and html, then my services folder, then my models folder. Now instead of doing it by type I have structured the codebase by feature. So all the stuff for journal (the html, css, ts, test file, service, model) are all in one place now.
+Going to have a read over the docs that have all been updated, maybe create a new md file with what we are now going to do moving forward - also should I do a test file for journal?

@@ -1,5 +1,5 @@
 import { effect, Injectable, signal } from '@angular/core';
-import { JournalEntry } from '../models/journal-entry.model';
+import { JournalEntry } from './journal-entry.model';
 
 const STORAGE_KEY = 'jakeos-journal';
 

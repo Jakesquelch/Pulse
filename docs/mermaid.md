@@ -10,24 +10,24 @@ graph TD
 
     Root --> Router
 
-    Router -->|"''"| Dashboard["Dashboard<br/>pages/dashboard"]
-    Router -->|"/todo"| ToDo["ToDoList<br/>pages/to-do-list"]
-    Router -->|"/journal"| Journal["Journal<br/>pages/journal"]
-    Router -->|"/habit"| Habit["HabitTracker<br/>pages/habit-tracker"]
+    Router -->|"''"| Dashboard["Dashboard<br/>dashboard/"]
+    Router -->|"/todo"| ToDo["ToDoList<br/>tasks/to-do-list"]
+    Router -->|"/journal"| Journal["Journal<br/>journal/"]
+    Router -->|"/habit"| Habit["HabitTracker<br/>habits/habit-tracker"]
 
-    Root --> ThemeService["ThemeService<br/>signal: theme"]
+    Root --> ThemeService["ThemeService<br/>core/ — signal: theme"]
 
     Dashboard --> TaskService
     Dashboard --> JournalService
     Dashboard --> HabitService
 
-    ToDo --> TaskService["TaskService<br/>signal: tasks"]
-    Journal --> JournalService["JournalService<br/>signal: entries"]
-    Habit --> HabitService["HabitService<br/>signal: habits"]
+    ToDo --> TaskService["TaskService<br/>tasks/ — signal: tasks"]
+    Journal --> JournalService["JournalService<br/>journal/ — signal: entries"]
+    Habit --> HabitService["HabitService<br/>habits/ — signal: habits"]
 
-    TaskService -.-> TaskModel["Task / TaskGroup<br/>models/task.model.ts"]
-    JournalService -.-> JournalModel["JournalEntry<br/>models/journal-entry.model.ts"]
-    HabitService -.-> HabitModel["Habit<br/>models/habit.model.ts"]
+    TaskService -.-> TaskModel["Task / TaskGroup<br/>tasks/task.model.ts"]
+    JournalService -.-> JournalModel["JournalEntry<br/>journal/journal-entry.model.ts"]
+    HabitService -.-> HabitModel["Habit<br/>habits/habit.model.ts"]
 
     TaskService --> LocalStorage[("localStorage<br/>jakeos-tasks")]
     JournalService --> LocalStorage2[("localStorage<br/>jakeos-journal")]
@@ -50,11 +50,14 @@ graph TD
 ## Notes
 
 - All pages are standalone Angular components (no NgModules).
+- The app is organised by feature: each feature folder under `src/app/`
+  (`dashboard/`, `tasks/`, `habits/`, `journal/`) co-locates its page component,
+  model, service, and service spec. Cross-cutting code lives in `core/`.
 - Each feature (tasks, journal, habits) follows the same pattern: a page component
   injects a service; the service holds state in an Angular `signal`, persists it to
   `localStorage` via an `effect`, and exposes typed model interfaces.
-- `ThemeService` is the odd one out — it's injected directly by the app shell
-  (`app.ts`) rather than a page, and drives the four CSS-variable palettes in
-  `styles.css` by setting `data-theme` on `<html>`.
+- `ThemeService` is the odd one out — it lives in `core/`, is injected directly by
+  the app shell (`app.ts`) rather than a page, and drives the four CSS-variable
+  palettes in `styles.css` by setting `data-theme` on `<html>`.
 - Dashboard is a read-only aggregator: it injects all three feature services to
   show summary stats but doesn't own any state itself.

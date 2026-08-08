@@ -1,5 +1,5 @@
 import { effect, Injectable, signal } from '@angular/core';
-import { Habit } from '../models/habit.model';
+import { Habit } from './habit.model';
 
 const STORAGE_KEY = 'jakeos-habits';
 

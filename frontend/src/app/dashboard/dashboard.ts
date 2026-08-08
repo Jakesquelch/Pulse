@@ -2,10 +2,10 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { TaskService } from '../../services/task.service';
-import { JournalService } from '../../services/journal.service';
-import { HabitService } from '../../services/habit.service';
-import { toLocalDate } from '../../util/date';
+import { TaskService } from '../tasks/task.service';
+import { JournalService } from '../journal/journal.service';
+import { HabitService } from '../habits/habit.service';
+import { toLocalDate } from '../core/util/date';
 
 @Component({
   selector: 'app-dashboard',

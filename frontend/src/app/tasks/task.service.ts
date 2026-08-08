@@ -1,5 +1,5 @@
 import { effect, Injectable, signal } from '@angular/core';
-import { Task, TaskGroup } from '../models/task.model';
+import { Task, TaskGroup } from './task.model';
 
 const STORAGE_KEY = 'jakeos-tasks';
 

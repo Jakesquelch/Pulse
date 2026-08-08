@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { DatePipe } from '@angular/common';
-import { ThemeName, ThemeService } from './services/theme.service';
+import { ThemeName, ThemeService } from './core/theme.service';
 
 @Component({
   selector: 'app-root',

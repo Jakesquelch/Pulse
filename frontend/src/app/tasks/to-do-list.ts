@@ -1,9 +1,9 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Task, TaskGroup } from '../../models/task.model';
+import { Task, TaskGroup } from './task.model';
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { TaskService } from '../../services/task.service';
+import { TaskService } from './task.service';
 
 @Component({
   selector: 'app-to-do-list',

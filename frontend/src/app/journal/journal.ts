@@ -1,8 +1,8 @@
 import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { JournalEntry } from '../../models/journal-entry.model';
-import { JournalService } from '../../services/journal.service';
+import { JournalEntry } from './journal-entry.model';
+import { JournalService } from './journal.service';
 
 @Component({
   selector: 'app-journal',
