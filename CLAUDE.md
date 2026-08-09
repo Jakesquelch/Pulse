@@ -28,3 +28,9 @@ Run from `frontend/`:
   existing model/contract (e.g. backend schemas must mirror the frontend models
   in `frontend/src/app/*/`*.model.ts`). If simplifying deliberately, say so
   explicitly in the same message the code is introduced.
+- Prioritise readability, with judgement: extract a named, typed intermediate
+  when an expression is bulky or multi-part (e.g. an object literal passed to
+  `http.post` becomes a typed `requestBody`); keep trivial single values
+  inline. Shapes that cross the frontend/backend boundary get a named type in
+  the feature's model file. The test is "does the name reveal intent?", not
+  "is everything extracted?".

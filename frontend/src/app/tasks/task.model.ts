@@ -7,3 +7,7 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
   group?: TaskGroup; // optional grouping
 }
+
+// What the client is allowed to send when creating a task — mirrors the
+// backend's TaskCreate model. The server owns everything Omit removes.
+export type TaskCreate = Omit<Task, 'id' | 'completed'>;

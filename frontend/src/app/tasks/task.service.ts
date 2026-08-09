@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { persistedSignal } from '../core/persisted-signal';
-import { Task, TaskGroup } from './task.model';
+import { Task, TaskCreate, TaskGroup } from './task.model';
 
 const STORAGE_KEY = 'jakeos-tasks';
 const API_URL = 'http://localhost:8000/tasks';
@@ -25,16 +25,19 @@ export class TaskService {
       .subscribe((tasks) => this.tasksSignal.set(tasks));
   }
 
-  // '' comes from the form's "No group" option and is stored as undefined.
+  // '' comes from the form's "No group" option; `group || undefined` makes
+  // JSON.stringify drop the key entirely, matching the backend's omit-style
+  // contract. The server owns id generation and `completed` — the signal only
+  // gets the task once the server has accepted it (pessimistic update).
   addTask(title: string, priority: Task['priority'], group?: TaskGroup | '') {
-    const newTask: Task = {
-      id: crypto.randomUUID(),
+    const requestBody: TaskCreate = {
       title,
-      completed: false,
       priority,
       group: group || undefined,
     };
-    this.tasksSignal.update((tasks) => [...tasks, newTask]);
+    this.http.post<Task>(API_URL, requestBody).subscribe((createdTask) => {
+      this.tasksSignal.update((tasks) => [...tasks, createdTask]);
+    });
   }
 
   deleteTask(id: string) {
