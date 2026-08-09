@@ -49,4 +49,11 @@ Now scaffolding the backend:
 - setup venv and install fastAPI and uvicorn
 - create main.py
 
+**9th August:**
+Made a change to the dashboard. Updated some of the text with more of a vision and purpose of this app that I have. Everyone can fall into traps of being a fake productive person, having a never ending todolist of what quite frankly 90% of the things don't really matter, and only 10% of the things on the todolist are actually moving the needle. So the purpose of this app is to allow the users to cut the noise out and focus on what is the signal, what are the things they should be focussing on to get the greatest return, and how can we cut out habits/todolist tasks that don't actually serve us. When you have meaning behind an app its like it becomes something real and actually builds meaning for myself and therefore is just better and something that can be improved and I am more passionate about.
+
+Ok so yesterday we started to setup our FastAPI backend. We just have a hardcoded GET /tasks endpoint atm (this is just checking that we can send data out from our server). We are now going to create a POST /tasks endpoint so that the server can listen (receive data in, validate it, store it). Right now we don't have a DB set up, so the data lives in the servers memory, so it dissapears when the server restarts, that's fine for now, we will add persistence later.
+
+So we are now looking at POST /tasks. I believe the frontend client will pass task data to our backend (our backend will validate that data), then pass it to our server?
+
 Next time: wire Angular's TaskService to fetch from the API, or add POST /tasks.

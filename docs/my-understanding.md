@@ -34,3 +34,9 @@ That works, but the limits are baked in: the data exists only in that browser on
 - A backend is a second, separate program that owns the data. It runs on its own — during development it'll just be another process on your laptop, started in another terminal — and it does two jobs: store data durably (in a real database) and answer questions about it. Your Angular app then stops being the keeper of the data and becomes a client: something that asks for data.
 - Today, adding a task: addTask() updates the signal → the seam's effect() fires → localStorage.setItem. 
 After: addTask() updates the signal → the seam sends POST http://localhost:8000/tasks with the task as JSON → FastAPI receives it, writes a row into the SQLite file, responds → done. Same first half, different second half — which is exactly what "seam" meant.
+
+We hard coded this endpoint, with tasks being an array with values.
+@app.get("/tasks")
+def get_tasks():
+    return tasks
+So if we go to localhost:8000/docs we can now see GET /tasks there and if we go to localhost:8000/tasks we can see our array outputs there in json. We could also go to the FastAPI swagger and go to the GET /tasks and try it out and execute it, and we would be given the data that is at the localhost:8000/tasks page!

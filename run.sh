@@ -12,7 +12,7 @@ fi
 
 # Install only when needed: fresh checkout or dependencies changed
 if [ ! -d node_modules ] || [ package-lock.json -nt node_modules ]; then
-  npm i #(this installs the dependencies)
+  npm i 
 fi
 
-exec npm start #(equivalent of ng serve - script in package.json)
+exec npm start
