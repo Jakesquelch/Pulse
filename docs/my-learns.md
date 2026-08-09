@@ -41,6 +41,8 @@ I currently have a localStorage persistence layer. There are 2 ways a persistenc
 - Good idea to change the style of your code from type (ie models and services folders) to by feature (journal folder has everything in it). I've done this now because it makes it easier when scaling and angular recommends it.
 
 - I am using a CORS setup for my REST API backend httpclient integration. Basically my backend will be at localhost:8000 (fastAPI) and frontend at localhost:4200 (angular). There is a rule where JS running on one origin isn't allowed to read responses from a different origin (this is because evil.com could read responses from my bank.com for example). 
-- So we are using CORS (Cross-Origin Resource Sharing), which is the consent mechanism. I basically add a header to my backend server that tells the browser "this origin is allowed to read my responses". So basically I am allowing localhost:4200 (angular) to read my localhost:8000 (fastAPI) responses.
+- So we are using CORS (Cross-Origin Resource Sharing), which is the consent mechanism. I basically add a header to my backend server that tells the browser "this origin is allowed to read my responses". So basically I am allowing localhost:4200 (angular) to read my localhost:8000 (fastAPI) responses. allow_origins=["http://localhost:4200"], is the specific line of code that does this.
 
 - TypeScript types are erased at runtime. A Pydantic model is enforced at runtime. We use a Pydantic model to validate json data that is going to our FastAPI server from our frontend client. (for example validation in a POST)
+
+- HTTP is asynchronous

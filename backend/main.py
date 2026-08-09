@@ -2,9 +2,20 @@ import uuid
 from typing import Literal
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 app = FastAPI()
+
+# Browsers block localhost:4200 (Angular) from reading responses off
+# localhost:8000 (this server) unless we consent — that's CORS. Allow exactly
+# our frontend origin, nothing wider.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class TaskCreate(BaseModel):
     title: str

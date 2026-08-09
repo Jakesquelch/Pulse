@@ -56,4 +56,4 @@ Ok so yesterday we started to setup our FastAPI backend. We just have a hardcode
 
 So we are now looking at POST /tasks. I believe the frontend client will pass task data to our backend (our backend will validate that data), then pass it to our server?
 
-Next time: wire Angular's TaskService to fetch from the API, or add POST /tasks.
+Now we are going to wire up Angular's TaskService to GET /tasks (aka we are wiring up our frontend to our backend API)

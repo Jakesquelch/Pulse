@@ -25,7 +25,7 @@ So we understand a bit better about how the theme is changed now. Now we are goi
 **refactor structure**
 Changed from organising file structure from 'by type' (ie services and models folders) to 'by feature' so now we have a journal folder with all the files in there. This is the recommended approach to scale.
 
-**storage/backend changes - Moving from localStorage to REST API**
+**storage/backend changes - Moving from localStorage to creating our REST API**
 - So we have had localStorage so far, and we are planning to move away from it towards using backend API. Firstly I made a change where we had duplicated code in each of the 3 services that loaded the data from the localStorage, I've moved this to one place now at persisted-signal.ts. So the effect() in the constructor and the load stuff can be deleted.
 - Where we are at right now:
 Right now JakeOS is one program: the Angular app, running entirely inside your browser. When it needs to remember something overnight, it uses localStorage — which is just a little per-website key-value store the browser keeps on your hard drive. The whole lifecycle of your data happens on one machine, inside one browser:
@@ -40,3 +40,8 @@ We hard coded this endpoint, with tasks being an array with values.
 def get_tasks():
     return tasks
 So if we go to localhost:8000/docs we can now see GET /tasks there and if we go to localhost:8000/tasks we can see our array outputs there in json. We could also go to the FastAPI swagger and go to the GET /tasks and try it out and execute it, and we would be given the data that is at the localhost:8000/tasks page!
+
+Ok so yesterday we started to setup our FastAPI backend. We just have a hardcoded GET /tasks endpoint atm (this is just checking that we can send data out from our server). We are now going to create a POST /tasks endpoint so that the server can listen (receive data in, validate it, store it). Right now we don't have a DB set up, so the data lives in the servers memory, so it dissapears when the server restarts, that's fine for now, we will add persistence later.
+
+**wire up angular to fetch from the API**
+So now that we set up a couple endpoints, I'm now going to now wire up Angulars (my frontend) TaskService so that it can fetch from the API (GET /task). So my understanding is that when this TaskService is created we call the backend localhost:8000/tasks and gets our data. When the response arrives, the callback pushes the parsed JSON into the signal with .set(tasks). From that point (where the signal is updated), our old service/signal architecture takes over and every component reading tasks re-renders automatically. So basically we still have the same service/signal architecture, however, we are now getting the data from the backend, and not our localStorage (technically the localStorage stuff is actually still there for now - but we are going to get rid of it shortly)
