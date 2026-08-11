@@ -2,7 +2,7 @@ import { effect, Injectable, signal } from '@angular/core';
 
 export type ThemeName = 'oat' | 'dusk' | 'ink' | 'candlelit';
 
-const STORAGE_KEY = 'jakeos-theme';
+const STORAGE_KEY = 'pulse-theme';
 const THEMES: ThemeName[] = ['oat', 'dusk', 'ink', 'candlelit'];
 
 @Injectable({ providedIn: 'root' })

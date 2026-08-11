@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "JakeOS": {
+    "Pulse": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -58,10 +58,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "JakeOS:build:production"
+              "buildTarget": "Pulse:build:production"
             },
             "development": {
-              "buildTarget": "JakeOS:build:development"
+              "buildTarget": "Pulse:build:development"
             }
           },
           "defaultConfiguration": "development"

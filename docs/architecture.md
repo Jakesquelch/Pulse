@@ -1,8 +1,8 @@
-# JakeOS - Technical Architecture
+# Pulse - Technical Architecture
 
 ## Overview
 
-JakeOS is built as a modern single-page application (SPA) using Angular's standalone component architecture, running **zoneless** (no zone.js — change detection is driven by signals). The app is organised **by feature**: each feature folder co-locates everything that feature needs, and the same three roles repeat inside each one:
+Pulse is built as a modern single-page application (SPA) using Angular's standalone component architecture, running **zoneless** (no zone.js — change detection is driven by signals). The app is organised **by feature**: each feature folder co-locates everything that feature needs, and the same three roles repeat inside each one:
 
 ```
 page component   →  what the user sees (thin view)
@@ -36,20 +36,20 @@ frontend/src/app/
 ├── tasks/
 │   ├── to-do-list.ts/.html/.css  # Tasks page
 │   ├── task.model.ts
-│   ├── task.service.ts           # Task state (key: jakeos-tasks)
+│   ├── task.service.ts           # Task state (key: pulse-tasks)
 │   └── task.service.spec.ts
 ├── journal/
 │   ├── journal.ts/.html/.css     # Journal page
 │   ├── journal-entry.model.ts
-│   └── journal.service.ts        # Entry state (key: jakeos-journal)
+│   └── journal.service.ts        # Entry state (key: pulse-journal)
 ├── habits/
 │   ├── habit-tracker.ts/.html/.css  # Habits page + 7-day grid
 │   ├── habit.model.ts
-│   ├── habit.service.ts          # Habit state (key: jakeos-habits)
+│   ├── habit.service.ts          # Habit state (key: pulse-habits)
 │   └── habit.service.spec.ts
 └── core/                         # Cross-cutting, shared by features
     ├── persisted-signal.ts       # The persistence seam (+ spec)
-    ├── theme.service.ts          # Active theme (key: jakeos-theme)
+    ├── theme.service.ts          # Active theme (key: pulse-theme)
     └── util/date.ts              # toLocalDate() — local "YYYY-MM-DD" strings
 ```
 
@@ -65,7 +65,7 @@ Every data service follows the same shape (worth reading `task.service.ts` as th
 @Injectable({ providedIn: 'root' })        // one shared instance, app-wide
 export class TaskService {
   // loaded from + auto-saved to storage by the seam:
-  private tasksSignal = persistedSignal<Task[]>('jakeos-tasks', []);
+  private tasksSignal = persistedSignal<Task[]>('pulse-tasks', []);
   readonly tasks = this.tasksSignal.asReadonly();  // components get read-only view
 
   addTask(...)    { this.tasksSignal.update(tasks => [...tasks, newTask]); }

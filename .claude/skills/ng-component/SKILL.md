@@ -1,6 +1,6 @@
 ---
 name: ng-component
-description: Scaffold a new Angular standalone component following JakeOS conventions.
+description: Scaffold a new Angular standalone component following Pulse conventions.
 disable-model-invocation: true
 ---
 

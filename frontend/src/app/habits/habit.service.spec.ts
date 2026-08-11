@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Habit } from './habit.model';
 import { HabitService } from './habit.service';
 
-const STORAGE_KEY = 'jakeos-habits';
+const STORAGE_KEY = 'pulse-habits';
 
 // What localStorage actually holds right now, parsed.
 function stored(): Habit[] {

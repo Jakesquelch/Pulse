@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { persistedSignal } from '../core/persisted-signal';
 import { Habit } from './habit.model';
 
-const STORAGE_KEY = 'jakeos-habits';
+const STORAGE_KEY = 'pulse-habits';
 
 @Injectable({ providedIn: 'root' })
 export class HabitService {

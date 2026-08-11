@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { JournalEntry } from './journal-entry.model';
 import { JournalService } from './journal.service';
 
-const STORAGE_KEY = 'jakeos-journal';
+const STORAGE_KEY = 'pulse-journal';
 
 // What localStorage actually holds right now, parsed.
 function stored(): JournalEntry[] {

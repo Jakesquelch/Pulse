@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { persistedSignal } from '../core/persisted-signal';
 import { JournalEntry } from './journal-entry.model';
 
-const STORAGE_KEY = 'jakeos-journal';
+const STORAGE_KEY = 'pulse-journal';
 
 @Injectable({ providedIn: 'root' })
 export class JournalService {

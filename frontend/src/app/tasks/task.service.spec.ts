@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Task } from './task.model';
 import { TaskService } from './task.service';
 
-const STORAGE_KEY = 'jakeos-tasks';
+const STORAGE_KEY = 'pulse-tasks';
 
 // What localStorage actually holds right now, parsed.
 function stored(): Task[] {

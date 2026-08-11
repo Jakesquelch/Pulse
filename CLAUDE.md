@@ -2,7 +2,7 @@
 
 ## Project overview
 
-JakeOS is a personal dashboard built with Angular 21, living in `frontend/`.
+Pulse is a personal dashboard built with Angular 21, living in `frontend/`.
 The app is organised by feature: each feature folder under `frontend/src/app/`
 (`dashboard/`, `tasks/`, `habits/`, `journal/`) holds its standalone page
 component plus its model, service, and service spec. Cross-cutting pieces

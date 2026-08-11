@@ -46,3 +46,5 @@ I currently have a localStorage persistence layer. There are 2 ways a persistenc
 - TypeScript types are erased at runtime. A Pydantic model is enforced at runtime. We use a Pydantic model to validate json data that is going to our FastAPI server from our frontend client. (for example validation in a POST)
 
 - HTTP is asynchronous
+
+- I learnt about Claudes memory. So I have my own system prompt etc, but Claude also keeps one. If you go to ~/.claude/projects on your PC (not on this project) you can see the memory folder which holds system prompts there for Claude, this is cool, I didn't realise it did this, it's good because means you don't have to do also the system prompts on your own you can just hand it off to Claude to do there. I believe it also has session transcrips there too.

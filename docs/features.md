@@ -1,4 +1,4 @@
-# JakeOS - Features & Implementation Status
+# Pulse - Features & Implementation Status
 
 ## Feature Overview
 
@@ -40,7 +40,7 @@ Task management with priorities, optional grouping, and persistence.
 - ✅ Complete/uncomplete via checkbox (strikes through the title only)
 - ✅ Inline editing with Save/Cancel
 - ✅ Delete (Edit/Delete revealed on row hover)
-- ✅ **Persistence via localStorage** (`jakeos-tasks`)
+- ✅ **Persistence via localStorage** (`pulse-tasks`)
 - ✅ Empty state message
 
 ### Technical Implementation:
@@ -69,7 +69,7 @@ Free-form journaling — the heart of the "dump your mind" idea.
 - ✅ Edit and delete (revealed on hover)
 - ✅ Multi-line entries preserved (`white-space: pre-wrap`)
 - ✅ Serif reading typography for entry text
-- ✅ **Persistence via localStorage** (`jakeos-journal`)
+- ✅ **Persistence via localStorage** (`pulse-journal`)
 
 ### Technical Implementation:
 - Model: `journal/journal-entry.model.ts` (`id`, `content`, `createdAt` ISO timestamp)
@@ -95,7 +95,7 @@ Daily habit tracking over a rolling 7-day window.
 - ✅ Last 7 days as clickable day cells (weekday + day number, today outlined)
 - ✅ Toggle any of the 7 days done/undone
 - ✅ 🔥 Streak counter (consecutive days, forgiving of an unticked today)
-- ✅ **Persistence via localStorage** (`jakeos-habits`)
+- ✅ **Persistence via localStorage** (`pulse-habits`)
 
 ### Technical Implementation:
 - Model: `habits/habit.model.ts` (`id`, `name`, `completedDates: string[]` of local `"YYYY-MM-DD"` strings)
@@ -116,7 +116,7 @@ Daily habit tracking over a rolling 7-day window.
 
 - ✅ Token-based design system in `styles.css` (colors, radii, type as CSS variables)
 - ✅ Four themes: **Oat** (light), **Dusk** (warm grey), **Ink** (navy), **Candlelit** (dark)
-- ✅ Theme switcher (swatch dots in the sidebar), choice persisted (`jakeos-theme`)
+- ✅ Theme switcher (swatch dots in the sidebar), choice persisted (`pulse-theme`)
 - ✅ First visit follows the OS light/dark preference
 - ✅ Persistent sidebar navigation (app shell in `app.html`)
 - ✅ Serif display font, shared `.card`/`.btn`/`.pill` component classes

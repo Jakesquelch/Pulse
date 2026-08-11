@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { persistedSignal } from '../core/persisted-signal';
 import { Task, TaskCreate, TaskGroup } from './task.model';
 
-const STORAGE_KEY = 'jakeos-tasks';
+const STORAGE_KEY = 'pulse-tasks';
 const API_URL = 'http://localhost:8000/tasks';
 
 @Injectable({ providedIn: 'root' })

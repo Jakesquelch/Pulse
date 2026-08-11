@@ -1,4 +1,4 @@
-# JakeOS Architecture
+# Pulse Architecture
 
 ```mermaid
 ---
@@ -32,8 +32,8 @@ graph TD
     TaskService --> Seam
     JournalService --> Seam
     HabitService --> Seam
-    Seam["persistedSignal()<br/>core/persisted-signal.ts"] --> LocalStorage[("localStorage<br/>jakeos-tasks · jakeos-journal · jakeos-habits<br/>(+ -corrupt backups)")]
-    ThemeService --> LocalStorage4[("localStorage<br/>jakeos-theme")]
+    Seam["persistedSignal()<br/>core/persisted-signal.ts"] --> LocalStorage[("localStorage<br/>pulse-tasks · pulse-journal · pulse-habits<br/>(+ -corrupt backups)")]
+    ThemeService --> LocalStorage4[("localStorage<br/>pulse-theme")]
 
     ThemeService -->|"data-theme attr"| Styles["styles.css<br/>oat / dusk / ink / candlelit tokens"]
 

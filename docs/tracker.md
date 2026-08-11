@@ -59,3 +59,27 @@ So we are now looking at POST /tasks. I believe the frontend client will pass ta
 wiring up our frontend to our backend API
 Now we are going to wire up Angular's TaskService to GET /tasks so now we can talk to our backend from the frontend and get tasks
 Have also wired up Angular's TaskService for POST /tasks so it now can send data to our backend when a user creates a task
+
+**10th August:**
+Changing the name from JakeOS to Pulse, as Ben pointed out, its not an OS so the previous name is deceiving. I think Pulse is a good name because this app should be something that is constantly going (like a pulse), it should be an app that drives your life (it steers you in the right direction), it is essential (without a pulse you die), without this app, you struggle to prioritise, brain dump, and have direction.
+
+
+
+
+
+
+Next up:
+Loose ends (10 minutes, worth doing): actually run the test loop — add a task in the UI, refresh (it survives), restart uvicorn, refresh (it's gone). And my standing question: delete a task, refresh, and explain what you see. I'll spoil it now since we're closing the session: the deletion un-happens — deleteTask only changed the signal and localStorage, the server never heard about it, so the next fetch resurrects the task. Zombie tasks. If you predicted that, the read/write asymmetry has landed.
+
+That asymmetry is exactly what points at what's next. Two candidates, and I have a recommendation this time:
+
+Next session: finish wiring the remaining task operations — DELETE /tasks/{id} and an update endpoint, plus their frontend calls. My reasoning for putting this before persistence: right now the tasks feature is in its most confusing possible state — adds are real, deletes and toggles are ghosts. Finishing the wiring makes the server the single authority for everything, kills the zombie-task bug, and lets you fully retire persistedSignal from TaskService — the seam completes its purpose for this feature. New concepts you'll meet:
+
+- Path parameters: @app.delete("/tasks/{task_id}") — the id lives in the URL, and FastAPI hands it to your function as an argument. REST convention: the URL names which resource, the method says what to do to it.
+- 404 handling: what should the server do when asked to delete an id it doesn't have? Your first HTTPException.
+- A design question to chew on beforehand: for toggling completed, is that a PUT (replace the whole task) or a PATCH (change one field)? Look up the difference and come with an opinion — there's no single right answer, and arguing it is the lesson.
+
+Then the session after: real persistence — replace the in-memory list so uvicorn restarts stop wiping data. Doing it after full CRUD means you persist d of retrofitting.That's also when the seed tasks finally get deleted, per our earlier deferral.
+
+For today's tracker entry, the honest summary: wired both directions of fronnd creates(HttpClient, Observables-just-enough, CORS + preflight, pessimistic updates), added TaskCreate with Omit on the frontend, tightened CLAUDE.md with two working-style rules. Next time: DELETE /tasks/{task_id} a with a PUT-vs-PATCH opinion.                                                          
+That last item is your homework in the best sense: it's the first backend design deche opinion ratherthan inherit one.

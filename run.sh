@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run the JakeOS dev server on http://localhost:4200
+# Run the Pulse dev server on http://localhost:4200
 set -euo pipefail
 
 cd "$(dirname "$0")/frontend"
