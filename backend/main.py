@@ -17,6 +17,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# A whole task as the API hands it back — the mirror of the frontend's `Task`
+# interface. Declaring it as each endpoint's response_model means FastAPI
+# validates what we send *out*, not just what comes in, and publishes the shape
+# in /docs. `group` is the only optional field, and the endpoints below pair
+# this with response_model_exclude_none so it's omitted rather than sent as
+# null — the frontend's `group?: TaskGroup` allows absent, not null.
+class Task(BaseModel):
+    id: str
+    title: str
+    completed: bool
+    priority: Literal["low", "medium", "high"]
+    group: Literal["fun", "personal", "work"] | None = None
+
 class TaskCreate(BaseModel):
     title: str
     priority: Literal["low", "medium", "high"] = "medium"
@@ -36,11 +49,11 @@ tasks = [
     {"id": "2", "title": "Wire up Angular later", "completed": False, "priority": "medium", "group": "work"},
 ]
 
-@app.get("/tasks")
+@app.get("/tasks", response_model=list[Task], response_model_exclude_none=True)
 def get_tasks():
     return tasks
 
-@app.post("/tasks")
+@app.post("/tasks", response_model=Task, response_model_exclude_none=True)
 def create_task(task: TaskCreate):
     new_task = {
         "id": str(uuid.uuid4()),
@@ -70,9 +83,10 @@ def delete_task(task_id: str):
 # toggling `completed` can't accidentally clobber a title it never sent.
 # Returns the full updated task so the client can trust the server's version
 # rather than guessing what the change produced.
-@app.patch("/tasks/{task_id}")
+@app.patch("/tasks/{task_id}", response_model=Task, response_model_exclude_none=True)
 def update_task(task_id: str, updates: TaskUpdate):
     task_to_update = next((task for task in tasks if task["id"] == task_id), None)
+    # Same as above for delete_task, if we can't find the task_id throw a 404
     if task_to_update is None:
         raise HTTPException(status_code=404, detail=f"No task with id {task_id}")
 
@@ -82,10 +96,7 @@ def update_task(task_id: str, updates: TaskUpdate):
     requested_changes = updates.model_dump(exclude_unset=True)
     task_to_update.update(requested_changes)
 
-    # An explicit `"group": null` means "remove the grouping" — store that as
-    # an absent key, not a null, so the task keeps matching the frontend's
-    # `group?: TaskGroup` (optional, never null).
-    if task_to_update.get("group") is None:
-        task_to_update.pop("group", None)
-
+    # An explicit `"group": null` means "remove the grouping". Storing it as
+    # None is fine now — response_model_exclude_none drops it on the way out,
+    # so the client still sees an absent key rather than a null.
     return task_to_update

@@ -66,7 +66,6 @@ Changing the name from JakeOS to Pulse, as Ben pointed out, its not an OS so the
 I'm getting low on Fable tokens so I have got it to write up a plan for the future, so I can then drive opus against that plan and complete the work.
 Ok so we are mid-migration, we have setup GET /tasks and POST /tasks, we now need to do DELETE and PATCH. Let's start that now.
 
-- Create a script to setup the backend, change frontend script name to be frontend-setup.sh or smth
 - Our main.py is starting to look a tad messy?
 - Do we need a .env for anything? Is there stuff that shouldn't be in my public github?
 
