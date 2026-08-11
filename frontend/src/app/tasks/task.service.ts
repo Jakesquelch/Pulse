@@ -17,9 +17,13 @@ export class TaskService {
 
   constructor() {
     // The server is the source of truth for reads: whatever localStorage had
-    // is replaced once this response arrives. Writes (add/delete/toggle) still
-    // only go to localStorage until POST /tasks is wired up, so tasks added in
-    // the UI don't survive a refresh — known mid-migration gap.
+    // is replaced once this response arrives. If the request fails we keep the
+    // localStorage snapshot, so a dead backend looks like stale-but-normal data
+    // rather than an empty list.
+    //
+    // toggle/updateTitle still only touch the signal, so their changes are
+    // overwritten by this GET on the next load — the remaining mid-migration
+    // gap, closed once PATCH /tasks/{task_id} exists.
     this.http
       .get<Task[]>(API_URL)
       .subscribe((tasks) => this.tasksSignal.set(tasks));
@@ -40,8 +44,14 @@ export class TaskService {
     });
   }
 
+  // The id goes in the URL, not a body — the server's route is /tasks/{task_id}.
+  // <void> because the server answers 204 No Content: the delete succeeded and
+  // there's deliberately nothing to send back, so we drop the task ourselves
+  // rather than waiting for it in the response.
   deleteTask(id: string) {
-    this.tasksSignal.update((tasks) => tasks.filter((task) => task.id !== id));
+    this.http.delete<void>(`${API_URL}/${id}`).subscribe(() => {
+      this.tasksSignal.update((tasks) => tasks.filter((task) => task.id !== id));
+    });
   }
 
   toggleComplete(id: string) {

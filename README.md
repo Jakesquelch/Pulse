@@ -23,10 +23,17 @@ cd frontend
 npm test (equivalent of ng test - package.json script)
 ```
 
+To run a specific test file:
+```bash
+cd frontend
+ng test --include src/app/tasks/task.service.spec.ts
+```
+
 ### Backend Setup:
 ```bash
 cd backend
 source .venv/Scripts/activate (this is the command for bash terminal, might say bin instead of Scripts if the venv was created on mac/linux and not Windows)
+pip install -r requirements.txt (only do if you havent installed them yet ofc)
 uvicorn main:app --reload
 ```
 

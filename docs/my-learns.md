@@ -48,3 +48,7 @@ I currently have a localStorage persistence layer. There are 2 ways a persistenc
 - HTTP is asynchronous
 
 - I learnt about Claudes memory. So I have my own system prompt etc, but Claude also keeps one. If you go to ~/.claude/projects on your PC (not on this project) you can see the memory folder which holds system prompts there for Claude, this is cool, I didn't realise it did this, it's good because means you don't have to do also the system prompts on your own you can just hand it off to Claude to do there. I believe it also has session transcrips there too.
+
+- I've learnt that I've made it a little bit tricky for myself by initially doing localStorage and then changing to a REST API, because now I have to migrate and we currently have a hybrid of localStorage and backend, in the future I'll know to just jump straight to a backend API if necessary.
+
+- PUT replaces the whole task; PATCH changes some fields. I will choose PATCH for my TaskService as I just update the title or whether it is complete, not the whole task object.
