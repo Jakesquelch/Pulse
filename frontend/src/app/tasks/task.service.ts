@@ -1,30 +1,25 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { persistedSignal } from '../core/persisted-signal';
 import { Task, TaskCreate, TaskGroup, TaskUpdate } from './task.model';
 
-const STORAGE_KEY = 'pulse-tasks';
 const API_URL = 'http://localhost:8000/tasks';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
   private http = inject(HttpClient);
-  // Loaded from and auto-saved to storage by the seam; only the service can
-  // write to this signal (private)...
-  private tasksSignal = persistedSignal<Task[]>(STORAGE_KEY, []);
+  // An in-memory cache of what the server last told us, nothing more. It
+  // starts empty on every page load because the server — not this signal, and
+  // no longer localStorage — is the only thing that knows what tasks exist.
+  // Only the service can write to it (private)...
+  private tasksSignal = signal<Task[]>([]);
   // ...components get a read-only view of the signal:
   readonly tasks = this.tasksSignal.asReadonly();
 
   constructor() {
-    // The server is the source of truth for reads: whatever localStorage had
-    // is replaced once this response arrives. If the request fails we keep the
-    // localStorage snapshot, so a dead backend looks like stale-but-normal data
-    // rather than an empty list.
-    //
-    // Every task operation now goes through the server, so localStorage is
-    // pure dead weight here — a second source of truth that only ever shows
-    // up as stale ghosts when this GET fails. Retiring persistedSignal from
-    // this service (plain signal([])) is the last step of the migration.
+    // Fills the empty signal on startup. If this fails the list stays empty,
+    // which is honest-but-unhelpful: better than the old behaviour of showing
+    // a stale localStorage snapshot as though it were live data. Surfacing the
+    // failure to the user needs an error callback here — still to come.
     this.http
       .get<Task[]>(API_URL)
       .subscribe((tasks) => this.tasksSignal.set(tasks));

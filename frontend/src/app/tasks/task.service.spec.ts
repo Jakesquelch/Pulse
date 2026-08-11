@@ -1,122 +1,192 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { Task } from './task.model';
 import { TaskService } from './task.service';
 
-const STORAGE_KEY = 'pulse-tasks';
+const API_URL = 'http://localhost:8000/tasks';
 
-// What localStorage actually holds right now, parsed.
-function stored(): Task[] {
-  return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
+// A complete Task with sensible defaults, so each test only has to state the
+// fields it actually cares about.
+function makeTask(overrides: Partial<Task> = {}): Task {
+  return { id: 'a1', title: 'Stretch', completed: false, priority: 'low', ...overrides };
 }
 
 describe('TaskService', () => {
+  let service: TaskService;
+  let httpTesting: HttpTestingController;
+
   beforeEach(() => {
-    // All tests share one real (jsdom) localStorage — blank slate each time.
-    localStorage.clear();
+    // provideHttpClientTesting swaps the real network backend for one that
+    // queues requests instead of sending them, so tests can inspect what the
+    // service asked for and decide what it gets back. Nothing leaves the
+    // process — these tests pass with the backend switched off.
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(TaskService);
+    httpTesting = TestBed.inject(HttpTestingController);
   });
 
-  // We create the service with TestBed.inject rather than `new TaskService()`
-  // because the constructor calls effect(), which throws outside an injection
-  // context. TestBed also resets between tests, so each test gets a fresh
-  // instance — and therefore a fresh construction-time read of localStorage.
+  // Fails the test if the service fired a request nobody accounted for, or
+  // left one hanging — catches accidental extra calls as well as missing ones.
+  afterEach(() => httpTesting.verify());
 
-  it('starts empty when nothing is stored', () => {
-    const service = TestBed.inject(TaskService);
+  // The constructor fires GET /tasks the moment the service is injected, so
+  // every test has to answer that request before anything else happens.
+  function flushInitialLoad(tasks: Task[] = []) {
+    httpTesting.expectOne({ method: 'GET', url: API_URL }).flush(tasks);
+  }
+
+  it('starts empty and only fills once the server responds', () => {
+    // The signal is a cache of what the server said, and it hasn't said
+    // anything yet — no localStorage to fall back on any more.
     expect(service.tasks()).toEqual([]);
+
+    flushInitialLoad([makeTask({ id: 'srv-1', title: 'From the server' })]);
+
+    expect(service.tasks()).toEqual([
+      makeTask({ id: 'srv-1', title: 'From the server' }),
+    ]);
   });
 
-  it('loads tasks saved by a previous session', () => {
-    // Seeding must happen BEFORE inject(): the service reads localStorage
-    // in its field initializer, i.e. at construction.
-    const saved: Task[] = [{ id: 'a1', title: 'Stretch', completed: true, priority: 'low' }];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  it('addTask POSTs the new task and appends the version the server returns', () => {
+    flushInitialLoad();
 
-    const service = TestBed.inject(TaskService);
-    expect(service.tasks()).toEqual(saved);
-  });
-
-  it('addTask appends an incomplete task with a generated id', () => {
-    const service = TestBed.inject(TaskService);
     service.addTask('Water the plants', 'high');
 
-    const tasks = service.tasks();
-    expect(tasks).toHaveLength(1);
-    expect(tasks[0]).toMatchObject({
+    const request = httpTesting.expectOne(API_URL);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
       title: 'Water the plants',
       priority: 'high',
-      completed: false,
+      group: undefined,
     });
-    expect(tasks[0].id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+
+    // The server owns `id` and `completed`, so the test asserts we store what
+    // it sent rather than checking a generated id — that's the backend's job
+    // to get right now, not this service's.
+    const createdTask = makeTask({
+      id: 'srv-99',
+      title: 'Water the plants',
+      priority: 'high',
+    });
+    request.flush(createdTask);
+
+    expect(service.tasks()).toEqual([createdTask]);
   });
 
-  it("stores the form's no-group value ('') as undefined", () => {
-    const service = TestBed.inject(TaskService);
+  it("sends the form's no-group value ('') as undefined, so JSON omits the key", () => {
+    flushInitialLoad();
+
     service.addTask('Read 10 pages', 'medium', '');
-    expect(service.tasks()[0].group).toBeUndefined();
+
+    const request = httpTesting.expectOne(API_URL);
+    expect(request.request.body.group).toBeUndefined();
+    request.flush(makeTask({ title: 'Read 10 pages', priority: 'medium' }));
   });
 
-  it('toggleComplete flips only the targeted task', () => {
-    const service = TestBed.inject(TaskService);
-    service.addTask('One', 'low');
-    service.addTask('Two', 'low');
-    const [one, two] = service.tasks();
+  it('does not add the task until the server has accepted it', () => {
+    flushInitialLoad();
 
-    service.toggleComplete(two.id);
+    service.addTask('Not yet', 'low');
 
-    expect(service.tasks().find((t) => t.id === one.id)?.completed).toBe(false);
-    expect(service.tasks().find((t) => t.id === two.id)?.completed).toBe(true);
-  });
+    // Request is in flight and unanswered: a pessimistic update means the
+    // list must not show the task yet.
+    expect(service.tasks()).toEqual([]);
 
-  it('persists to localStorage when the effect runs — after a tick, not synchronously', () => {
-    const service = TestBed.inject(TaskService);
-    service.addTask('Buy milk', 'medium');
-
-    // Changing the signal only *schedules* the effect; nothing is written yet.
-    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
-
-    TestBed.tick(); // run pending effects
-
-    expect(stored()).toHaveLength(1);
-    expect(stored()[0].title).toBe('Buy milk');
-  });
-
-  it('deleteTask removes only the targeted task', () => {
-    const service = TestBed.inject(TaskService);
-    service.addTask('Keep me', 'low');
-    service.addTask('Delete me', 'high');
-    const [keep, remove] = service.tasks();
-
-    service.deleteTask(remove.id);
-
+    httpTesting.expectOne(API_URL).flush(makeTask({ id: 'srv-1', title: 'Not yet' }));
     expect(service.tasks()).toHaveLength(1);
-    expect(service.tasks()[0].id).toBe(keep.id);
   });
 
-  it('updateTitle renames only the targeted task, leaving the rest untouched', () => {
-    const service = TestBed.inject(TaskService);
-    service.addTask('Old name', 'medium');
-    service.addTask('Unrelated', 'low');
-    const [target, other] = service.tasks();
+  it('deleteTask DELETEs by id and removes only that task', () => {
+    const keep = makeTask({ id: 'keep', title: 'Keep me' });
+    const remove = makeTask({ id: 'remove', title: 'Delete me' });
+    flushInitialLoad([keep, remove]);
 
-    service.updateTitle(target.id, 'New name');
+    service.deleteTask('remove');
 
-    const after = service.tasks();
-    expect(after.find((t) => t.id === target.id)).toMatchObject({
+    const request = httpTesting.expectOne(`${API_URL}/remove`);
+    expect(request.request.method).toBe('DELETE');
+    // 204 No Content is what the endpoint answers — no body to hand back.
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(service.tasks()).toEqual([keep]);
+  });
+
+  it('toggleComplete PATCHes only the flipped field', () => {
+    const existing = makeTask({ id: 't1', title: 'Stretch', completed: false });
+    flushInitialLoad([existing]);
+
+    service.toggleComplete('t1');
+
+    const request = httpTesting.expectOne(`${API_URL}/t1`);
+    expect(request.request.method).toBe('PATCH');
+    // The heart of PATCH: `title` and `priority` are deliberately absent, so
+    // the server can't be told to overwrite them with what we happen to hold.
+    expect(request.request.body).toEqual({ completed: true });
+
+    request.flush({ ...existing, completed: true });
+
+    expect(service.tasks()[0].completed).toBe(true);
+  });
+
+  it('updateTitle PATCHes only the title, leaving the rest untouched', () => {
+    const target = makeTask({ id: 'target', title: 'Old name', priority: 'medium' });
+    const other = makeTask({ id: 'other', title: 'Unrelated' });
+    flushInitialLoad([target, other]);
+
+    service.updateTitle('target', 'New name');
+
+    const request = httpTesting.expectOne(`${API_URL}/target`);
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ title: 'New name' });
+
+    request.flush({ ...target, title: 'New name' });
+
+    const tasks = service.tasks();
+    expect(tasks.find((task) => task.id === 'target')).toMatchObject({
       title: 'New name',
       priority: 'medium',
       completed: false,
     });
-    expect(after.find((t) => t.id === other.id)?.title).toBe('Unrelated');
+    expect(tasks.find((task) => task.id === 'other')?.title).toBe('Unrelated');
   });
 
-  it('starts empty when the stored JSON is corrupt', () => {
-    localStorage.setItem(STORAGE_KEY, 'not json{');
-    const service = TestBed.inject(TaskService);
-    expect(service.tasks()).toEqual([]);
+  it('stores the server\'s version of a patched task, not a locally merged one', () => {
+    const existing = makeTask({ id: 't1', title: 'Old name' });
+    flushInitialLoad([existing]);
+
+    service.updateTitle('t1', 'New name');
+
+    // If the server normalises the change, its answer wins — we replace our
+    // copy rather than merging what we hoped would happen.
+    httpTesting
+      .expectOne(`${API_URL}/t1`)
+      .flush({ ...existing, title: 'Normalised By Server' });
+
+    expect(service.tasks()[0].title).toBe('Normalised By Server');
+  });
+
+  it('toggleComplete sends no request at all for an unknown id', () => {
+    flushInitialLoad();
+
+    service.toggleComplete('ghost');
+
+    // Nothing to flip locally means a guaranteed 404 — don't ask.
+    httpTesting.expectNone(`${API_URL}/ghost`);
   });
 });
 
-// The "silent wipe" characterization test that used to live here (corrupt
-// bytes overwritten with [] one tick after startup) moved to
-// core/persisted-signal.spec.ts when persistence was extracted — and the
-// behavior it pinned is fixed there: corrupt bytes are backed up first.
+// Not covered here yet: what the service does when a request FAILS. Nothing
+// subscribes with an error callback, so a failure currently propagates as an
+// unhandled error rather than any behaviour worth pinning. Those tests belong
+// with the error-handling work, once there's handling to test.
+//
+// The localStorage tests that used to live in this file are gone with the
+// persistence they described — TaskService no longer touches localStorage.
+// persistedSignal itself is still covered by core/persisted-signal.spec.ts,
+// which habits and journal still rely on.
