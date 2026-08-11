@@ -22,6 +22,15 @@ class TaskCreate(BaseModel):
     priority: Literal["low", "medium", "high"] = "medium"
     group: Literal["fun", "personal", "work"] | None = None
 
+# Every field optional because PATCH means "change what I send, leave the
+# rest" — a client toggling `completed` shouldn't have to resend the title.
+# `id` is absent on purpose: the server owns it, and it's already in the URL.
+class TaskUpdate(BaseModel):
+    title: str | None = None
+    completed: bool | None = None
+    priority: Literal["low", "medium", "high"] | None = None
+    group: Literal["fun", "personal", "work"] | None = None
+
 tasks = [
     {"id": "1", "title": "Try out FastAPI", "completed": False, "priority": "high"},
     {"id": "2", "title": "Wire up Angular later", "completed": False, "priority": "medium", "group": "work"},
@@ -56,3 +65,27 @@ def delete_task(task_id: str):
     if task_to_delete is None:
         raise HTTPException(status_code=404, detail=f"No task with id {task_id}")
     tasks.remove(task_to_delete)
+
+# PATCH, not PUT: the client sends only the fields it wants changed, so
+# toggling `completed` can't accidentally clobber a title it never sent.
+# Returns the full updated task so the client can trust the server's version
+# rather than guessing what the change produced.
+@app.patch("/tasks/{task_id}")
+def update_task(task_id: str, updates: TaskUpdate):
+    task_to_update = next((task for task in tasks if task["id"] == task_id), None)
+    if task_to_update is None:
+        raise HTTPException(status_code=404, detail=f"No task with id {task_id}")
+
+    # exclude_unset (not exclude_none) is what makes this a real PATCH: it
+    # keeps only the fields the client actually sent, so the ones it stayed
+    # silent about aren't overwritten with the model's None defaults.
+    requested_changes = updates.model_dump(exclude_unset=True)
+    task_to_update.update(requested_changes)
+
+    # An explicit `"group": null` means "remove the grouping" — store that as
+    # an absent key, not a null, so the task keeps matching the frontend's
+    # `group?: TaskGroup` (optional, never null).
+    if task_to_update.get("group") is None:
+        task_to_update.pop("group", None)
+
+    return task_to_update

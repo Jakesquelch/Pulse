@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { persistedSignal } from '../core/persisted-signal';
-import { Task, TaskCreate, TaskGroup } from './task.model';
+import { Task, TaskCreate, TaskGroup, TaskUpdate } from './task.model';
 
 const STORAGE_KEY = 'pulse-tasks';
 const API_URL = 'http://localhost:8000/tasks';
@@ -21,9 +21,10 @@ export class TaskService {
     // localStorage snapshot, so a dead backend looks like stale-but-normal data
     // rather than an empty list.
     //
-    // toggle/updateTitle still only touch the signal, so their changes are
-    // overwritten by this GET on the next load — the remaining mid-migration
-    // gap, closed once PATCH /tasks/{task_id} exists.
+    // Every task operation now goes through the server, so localStorage is
+    // pure dead weight here — a second source of truth that only ever shows
+    // up as stale ghosts when this GET fails. Retiring persistedSignal from
+    // this service (plain signal([])) is the last step of the migration.
     this.http
       .get<Task[]>(API_URL)
       .subscribe((tasks) => this.tasksSignal.set(tasks));
@@ -54,17 +55,28 @@ export class TaskService {
     });
   }
 
+  // Reads the current value to know what to flip to. If the id isn't in the
+  // signal there's nothing to toggle and the server would 404 anyway, so we
+  // stop here rather than send a request we know is wrong.
   toggleComplete(id: string) {
-    this.tasksSignal.update((tasks) =>
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+    const task = this.tasks().find((task) => task.id === id);
+    if (!task) return;
+    this.patchTask(id, { completed: !task.completed });
   }
 
   updateTitle(id: string, title: string) {
-    this.tasksSignal.update((tasks) =>
-      tasks.map((task) => (task.id === id ? { ...task, title } : task))
-    );
+    this.patchTask(id, { title });
+  }
+
+  // Shared by every partial update: PATCH sends just the changed fields, and
+  // the server responds with the whole updated task, which replaces our copy.
+  // Taking the server's version rather than merging locally means the two can
+  // never quietly disagree about what a task now looks like.
+  private patchTask(id: string, changes: TaskUpdate) {
+    this.http.patch<Task>(`${API_URL}/${id}`, changes).subscribe((updatedTask) => {
+      this.tasksSignal.update((tasks) =>
+        tasks.map((task) => (task.id === id ? updatedTask : task))
+      );
+    });
   }
 }
