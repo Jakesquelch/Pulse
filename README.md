@@ -14,7 +14,7 @@ npm start (equivalent of ng serve - package.json script)
 
 Easier alternative:
 ```bash
-./run.sh
+./run-frontend.sh
 ```
 
 ### Frontend Tests (Vitest):
@@ -36,6 +36,14 @@ source .venv/Scripts/activate (this is the command for bash terminal, might say 
 pip install -r requirements.txt (only do if you havent installed them yet ofc)
 uvicorn main:app --reload
 ```
+
+Easier alternative:
+```bash
+./run-backend.sh
+```
+Creates the venv if it's missing, installs requirements only when they've
+changed, and serves the API on http://localhost:8000. Doesn't use `activate`,
+so it keeps working even if the project folder gets renamed.
 
 ### Technology Stack
 - **OS**: Windows
