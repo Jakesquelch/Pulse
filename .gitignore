@@ -1,3 +1,7 @@
 .venv/
 __pycache__/
 bash.exe.stackdump
+.env
+.env.*
+!.env.example
+*.db

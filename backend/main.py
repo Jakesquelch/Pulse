@@ -5,7 +5,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+import storage
+
 app = FastAPI()
+
+# Tasks now live in a SQLite file rather than a list in memory, so they survive
+# a restart. Creating the table at startup means a fresh clone (or a deleted
+# pulse.db) just works — CREATE TABLE IF NOT EXISTS makes it a no-op otherwise.
+storage.init_db()
 
 # Browsers block localhost:4200 (Angular) from reading responses off
 # localhost:8000 (this server) unless we consent — that's CORS. Allow exactly
@@ -44,23 +51,21 @@ class TaskUpdate(BaseModel):
     priority: Literal["low", "medium", "high"] | None = None
     group: Literal["fun", "personal", "work"] | None = None
 
-tasks = [
-    {"id": "1", "title": "Try out FastAPI", "completed": False, "priority": "high"},
-    {"id": "2", "title": "Wire up Angular later", "completed": False, "priority": "medium", "group": "work"},
-]
-
 @app.get("/tasks", response_model=list[Task], response_model_exclude_none=True)
 def get_tasks():
-    return tasks
+    return storage.list_tasks()
 
 @app.post("/tasks", response_model=Task, response_model_exclude_none=True)
 def create_task(task: TaskCreate):
+    # A plain model_dump (not exclude_none) so `group` is present as None when
+    # the client omitted it — the INSERT wants a value for every column, and
+    # None is what SQLite stores as NULL.
     new_task = {
         "id": str(uuid.uuid4()),
         "completed": False,
-        **task.model_dump(exclude_none=True),
+        **task.model_dump(),
     }
-    tasks.append(new_task)
+    storage.create_task(new_task)
     return new_task
 
 # The id lives in the URL path, not the body: the URL names *which* task and
@@ -71,13 +76,12 @@ def create_task(task: TaskCreate):
 # task has nothing left worth returning. Returning None is required to match.
 @app.delete("/tasks/{task_id}", status_code=204)
 def delete_task(task_id: str):
-    task_to_delete = next((task for task in tasks if task["id"] == task_id), None)
+    deleted = storage.delete_task(task_id)
     # Deleting an id we've never heard of is the client's mistake, not a
     # server failure — raising HTTPException gets that across as a 404 instead
     # of us silently pretending it worked.
-    if task_to_delete is None:
+    if not deleted:
         raise HTTPException(status_code=404, detail=f"No task with id {task_id}")
-    tasks.remove(task_to_delete)
 
 # PATCH, not PUT: the client sends only the fields it wants changed, so
 # toggling `completed` can't accidentally clobber a title it never sent.
@@ -85,18 +89,20 @@ def delete_task(task_id: str):
 # rather than guessing what the change produced.
 @app.patch("/tasks/{task_id}", response_model=Task, response_model_exclude_none=True)
 def update_task(task_id: str, updates: TaskUpdate):
-    task_to_update = next((task for task in tasks if task["id"] == task_id), None)
-    # Same as above for delete_task, if we can't find the task_id throw a 404
-    if task_to_update is None:
-        raise HTTPException(status_code=404, detail=f"No task with id {task_id}")
-
     # exclude_unset (not exclude_none) is what makes this a real PATCH: it
     # keeps only the fields the client actually sent, so the ones it stayed
     # silent about aren't overwritten with the model's None defaults.
+    #
+    # An explicit `"group": null` means "remove the grouping", and survives
+    # exclude_unset as intended — it's stored as NULL, and
+    # response_model_exclude_none drops it on the way out, so the client sees
+    # an absent key rather than a null.
     requested_changes = updates.model_dump(exclude_unset=True)
-    task_to_update.update(requested_changes)
+    updated_task = storage.update_task(task_id, requested_changes)
 
-    # An explicit `"group": null` means "remove the grouping". Storing it as
-    # None is fine now — response_model_exclude_none drops it on the way out,
-    # so the client still sees an absent key rather than a null.
-    return task_to_update
+    # Same as above for delete_task, if we can't find the task_id throw a 404.
+    # storage returns None for an id that isn't in the table.
+    if updated_task is None:
+        raise HTTPException(status_code=404, detail=f"No task with id {task_id}")
+
+    return updated_task
