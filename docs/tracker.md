@@ -74,4 +74,4 @@ real persistence — replace the in-memory list so uvicorn restarts stop wiping 
 Now adding persistence (if we add a task and then restart the backend, that task will now stay there)
 So we added persistence by adding our DB.
 
-We now need to 
+We now need to work on phase 3 in fable plan which is Honest failure handling

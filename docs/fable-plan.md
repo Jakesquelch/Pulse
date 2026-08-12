@@ -1,9 +1,12 @@
 # Fable plan — road to a stable MVP
 
-Written 11th August, mid-migration. State right now: `GET /tasks` and
+Written 11th August, mid-migration. State when written: `GET /tasks` and
 `POST /tasks` exist and are wired to Angular. Delete/toggle/rename are still
 localStorage-only ghosts (the zombie-task bug). Habits and journal are pure
 localStorage. Backend storage is an in-memory list that dies on restart.
+
+> **Progress:** Phase 1 ✅ (11th Aug) · Phase 2 ✅ (12th Aug) ·
+> **Phase 3 is next.** Phases 4–5 not started.
 
 The ordering below is deliberate: **finish CRUD before persistence**, so you
 persist a complete, correct API rather than retrofitting endpoints onto a
@@ -11,7 +14,7 @@ database later. Each phase leaves the app working — no phase strands it.
 
 ---
 
-## Phase 1 — Finish task CRUD (next session)
+## Phase 1 — Finish task CRUD ✅ done 11th Aug
 
 The server becomes the single authority for tasks; the zombie bug dies here.
 
@@ -36,7 +39,14 @@ The server becomes the single authority for tasks; the zombie bug dies here.
 the *server's* memory only until restart. True check: delete, refresh — it
 stays deleted while the server runs. No task operation touches localStorage.
 
-## Phase 2 — SQLite persistence
+## Phase 2 — SQLite persistence ✅ done 12th Aug
+
+Built as planned: `backend/storage.py` owns all SQL, stdlib `sqlite3`, no ORM.
+One thing the plan didn't call out and the build met anyway: sqlite3 connections
+are per-thread and FastAPI runs sync endpoints on a threadpool, so it's one
+connection per operation rather than a shared global one. Column named `"group"`
+(quoted) rather than `task_group`, so rows map straight onto the frontend model.
+
 
 Yes, this is the DB step, and SQLite is the right call: a single file on
 disk, zero servers to run, ships with Python (`import sqlite3`), and is
@@ -60,7 +70,7 @@ genuinely production-grade for a single-user app. Not a toy compromise.
 
 **Done when:** add a task, kill uvicorn, restart, refresh — it's still there.
 
-## Phase 3 — Honest failure handling
+## Phase 3 — Honest failure handling ← **next**
 
 Right now every failure is silent: no `subscribe` has an error callback, so
 a dead backend looks like stale-but-normal data. Fine mid-migration,

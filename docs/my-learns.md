@@ -52,3 +52,5 @@ I currently have a localStorage persistence layer. There are 2 ways a persistenc
 - I've learnt that I've made it a little bit tricky for myself by initially doing localStorage and then changing to a REST API, because now I have to migrate and we currently have a hybrid of localStorage and backend, in the future I'll know to just jump straight to a backend API if necessary. However it was quite helpful to get the app going in the first place (using localStorage) and now I can migrate things and learn a lot in the process.
 
 - PUT replaces the whole task; PATCH changes some fields. I will choose PATCH for my TaskService as I just update the title or whether it is complete, not the whole task object.
+
+- For most apps we need the backend to always be online, otherwise it literally won't work as we can't store data or get data. Adding a DB does not solve this problem. Adding a DB just means that data persists when the backend goes off. But you cannot update the backend data when the backend is off, via the DB. (unless you use an offline-first approach but this is definitely too complicated for where I'm at right now)

@@ -45,6 +45,11 @@ Creates the venv if it's missing, installs requirements only when they've
 changed, and serves the API on http://localhost:8000. Doesn't use `activate`,
 so it keeps working even if the project folder gets renamed.
 
+### View DB:
+```bash
+"/c/Program Files/DB Browser for SQLite/DB Browser for SQLite.exe" ~/Projects/Pulse/backend/pulse.db &
+```
+
 ### Technology Stack
 - **OS**: Windows
 - **Frontend Framework:** Angular 21.0.1
