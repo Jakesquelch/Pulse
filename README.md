@@ -45,6 +45,22 @@ Creates the venv if it's missing, installs requirements only when they've
 changed, and serves the API on http://localhost:8000. Doesn't use `activate`,
 so it keeps working even if the project folder gets renamed.
 
+### Backend Tests (pytest):
+```bash
+cd backend
+source .venv/Scripts/activate
+pytest
+```
+Runs against a throwaway database in a temp folder, never `pulse.db` — your
+real tasks are safe. No need to have the server running.
+
+To run a specific test file or a single test:
+```bash
+cd backend
+pytest tests/test_tasks.py
+pytest -k test_deleting_an_unknown_id_is_a_404
+```
+
 ### View DB:
 ```bash
 "/c/Program Files/DB Browser for SQLite/DB Browser for SQLite.exe" ~/Projects/Pulse/backend/pulse.db &

@@ -74,3 +74,4 @@ We now need to work on phase 3 in fable plan which is Honest failure handling
 
 **13th August:**
 Need to deal with HTTP failures (for example the backend being down or something). Right now the user isn't told that. Also if a GET tasks fails, the error is unhandled.
+Updated frontend tests and added backend tests too.

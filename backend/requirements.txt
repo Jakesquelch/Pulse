@@ -1,2 +1,8 @@
 fastapi==0.141.1
 uvicorn==0.52.1
+
+# Testing only. httpx2 isn't imported by our code — FastAPI's TestClient is
+# built on it, so it has to be installed for the suite to run. (Starlette
+# deprecated the original httpx in favour of httpx2.)
+pytest==9.1.1
+httpx2==2.10.0
