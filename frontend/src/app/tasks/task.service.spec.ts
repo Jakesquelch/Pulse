@@ -179,13 +179,104 @@ describe('TaskService', () => {
     // Nothing to flip locally means a guaranteed 404 — don't ask.
     httpTesting.expectNone(`${API_URL}/ghost`);
   });
+
+  // The two failure signals mean different things, and the tests below exist
+  // mainly to pin that difference: a dead GET hides the list, a dead write
+  // must not.
+  describe('failure handling', () => {
+    // What HttpClient reports when the request never reached a server at all
+    // — the backend being switched off, rather than it answering with a 500.
+    const networkFailure = () => new ProgressEvent('error');
+
+    it('is loading until the first response, then ready', () => {
+      // Before the flush the answer is genuinely unknown, and the UI leans on
+      // that to avoid claiming "no tasks yet" prematurely.
+      expect(service.loadState()).toBe('loading');
+
+      flushInitialLoad([makeTask()]);
+
+      expect(service.loadState()).toBe('ready');
+    });
+
+    it('marks the load failed when the initial GET cannot reach the server', () => {
+      httpTesting.expectOne({ method: 'GET', url: API_URL }).error(networkFailure());
+
+      expect(service.loadState()).toBe('failed');
+      // Empty *and* flagged: the emptiness is unknown-ness, not "no tasks".
+      expect(service.tasks()).toEqual([]);
+    });
+
+    it('recovers when a retry succeeds', () => {
+      httpTesting.expectOne({ method: 'GET', url: API_URL }).error(networkFailure());
+      expect(service.loadState()).toBe('failed');
+
+      service.loadTasks();
+
+      httpTesting.expectOne({ method: 'GET', url: API_URL }).flush([makeTask()]);
+      expect(service.loadState()).toBe('ready');
+      expect(service.tasks()).toHaveLength(1);
+    });
+
+    it('reports a failed add without inventing the task locally', () => {
+      flushInitialLoad([makeTask({ id: 'existing' })]);
+
+      service.addTask('Never lands', 'high');
+      httpTesting.expectOne(API_URL).error(networkFailure());
+
+      expect(service.actionError()).toBeTruthy();
+      // Pessimistic updates earn their keep here: nothing to roll back.
+      expect(service.tasks()).toEqual([makeTask({ id: 'existing' })]);
+    });
+
+    it('keeps a task that failed to delete', () => {
+      flushInitialLoad([makeTask({ id: 'stubborn' })]);
+
+      service.deleteTask('stubborn');
+      httpTesting.expectOne(`${API_URL}/stubborn`).error(networkFailure());
+
+      expect(service.actionError()).toBeTruthy();
+      expect(service.tasks()).toHaveLength(1);
+    });
+
+    it('keeps the old value when a patch fails', () => {
+      flushInitialLoad([makeTask({ id: 't1', completed: false })]);
+
+      service.toggleComplete('t1');
+      httpTesting.expectOne(`${API_URL}/t1`).error(networkFailure());
+
+      expect(service.actionError()).toBeTruthy();
+      // The checkbox must not stay flipped on a change the server rejected.
+      expect(service.tasks()[0].completed).toBe(false);
+    });
+
+    it('leaves the list visible when a write fails', () => {
+      flushInitialLoad([makeTask()]);
+
+      service.deleteTask('a1');
+      httpTesting.expectOne(`${API_URL}/a1`).error(networkFailure());
+
+      // The whole point of two signals rather than one: a failed write says
+      // nothing about whether the tasks we already hold are accurate.
+      expect(service.loadState()).toBe('ready');
+    });
+
+    it('clears a previous error once an action succeeds', () => {
+      flushInitialLoad();
+
+      service.addTask('First try', 'low');
+      httpTesting.expectOne(API_URL).error(networkFailure());
+      expect(service.actionError()).toBeTruthy();
+
+      service.addTask('Second try', 'low');
+      httpTesting.expectOne(API_URL).flush(makeTask({ id: 'new', title: 'Second try' }));
+
+      // Clearing on the next attempt is why no dismiss button is needed — a
+      // stale message can't outlive the failure it described.
+      expect(service.actionError()).toBeNull();
+    });
+  });
 });
 
-// Not covered here yet: what the service does when a request FAILS. Nothing
-// subscribes with an error callback, so a failure currently propagates as an
-// unhandled error rather than any behaviour worth pinning. Those tests belong
-// with the error-handling work, once there's handling to test.
-//
 // The localStorage tests that used to live in this file are gone with the
 // persistence they described — TaskService no longer touches localStorage.
 // persistedSignal itself is still covered by core/persisted-signal.spec.ts,
