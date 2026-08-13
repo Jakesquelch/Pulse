@@ -19,7 +19,20 @@
     <button class="btn" (click)="addTask()">Add</button>
   </div>
 
+  <!-- A write failed. The list below is still accurate, so it stays on screen
+       and this sits above it. Renders nothing when there's no error. -->
+  <app-server-error-banner [message]="actionError()" />
+
   <div class="card">
+    @if (loadState() === 'failed') {
+      <div class="load-error" role="alert">
+        <p class="load-error-text">
+          Couldn't reach the server, so there's nothing to show. Check the
+          backend is running on localhost:8000.
+        </p>
+        <button class="btn" (click)="retryLoad()">Try again</button>
+      </div>
+    } @else if (loadState() === 'ready') {
     <ul class="list">
       @for (task of sortedTasks(); track task.id) {
         <li [class.completed]="task.completed">
@@ -47,10 +60,13 @@
             </span>
           }
         </li>
+      } @empty {
+        <li class="empty">Nothing here yet, feel free to add your first task above!</li>
       }
     </ul>
-    @if (sortedTasks().length === 0) {
-      <p class="empty">Nothing here yet, feel free to add your first task above!</p>
     }
+    <!-- 'loading' renders nothing on purpose: at localhost speed a spinner
+         would flash and vanish, and showing the empty-state message before the
+         GET lands would claim "you have no tasks" before we know that. -->
   </div>
 </section>

@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Task, TaskGroup } from './task.model';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { TaskService } from './task.service';
+import { ServerErrorBanner } from '../core/server-error-banner';
 
 @Component({
   selector: 'app-to-do-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, TitleCasePipe],
+  imports: [CommonModule, RouterModule, FormsModule, TitleCasePipe, ServerErrorBanner],
   templateUrl: './to-do-list.html',
   styleUrl: './to-do-list.css',
 })
@@ -20,6 +21,11 @@ export class ToDoList {
   newTaskPriority: 'low' | 'medium' | 'high' = 'medium';
   editingTaskId: string | null = null;
   editTaskTitle = '';
+
+  // Re-exposed so the template can read them directly. Both are already
+  // read-only views, so the component can't write to them by accident.
+  loadState = this.taskService.loadState;
+  actionError = this.taskService.actionError;
 
   doneCount = computed(() => this.taskService.tasks().filter((t) => t.completed).length);
   openCount = computed(() => this.taskService.tasks().length - this.doneCount());
@@ -61,5 +67,9 @@ export class ToDoList {
 
   cancelEdit() {
     this.editingTaskId = null;
+  }
+
+  retryLoad() {
+    this.taskService.loadTasks();
   }
 }

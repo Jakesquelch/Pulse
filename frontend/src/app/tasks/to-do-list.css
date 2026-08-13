@@ -9,3 +9,28 @@ li.completed .task-title {
 }
 
 li:hover .row-actions { opacity: 1; }
+
+/* The empty state is now the @for's @empty block, so it lives inside the <ul>
+   as an <li>. Restores the roomier padding the global .empty had before
+   .list li's own padding started winning on specificity. */
+.list li.empty {
+  padding: 22px 20px;
+  border-bottom: none;
+}
+
+/* The initial GET failed — replaces the list entirely, because we have no
+   idea what the tasks are. */
+.load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 26px 20px;
+}
+
+.load-error-text {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--muted);
+  font-size: 0.95rem;
+}

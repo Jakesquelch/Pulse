@@ -66,12 +66,11 @@ Changing the name from JakeOS to Pulse, as Ben pointed out, its not an OS so the
 I'm getting low on Fable tokens so I have got it to write up a plan for the future, so I can then drive opus against that plan and complete the work.
 Ok so we are mid-migration, we have setup GET /tasks and POST /tasks, we now need to do DELETE and PATCH. Let's start that now. Done. So our whole Task part is set up with my own REST backend API.
 
-Next up:
-real persistence — replace the in-memory list so uvicorn restarts stop wiping data. Doing it after full CRUD means you persist d of retrofitting.That's also when the seed tasks finally get deleted, per our earlier deferral.
-- Keep referring to the fable-plan.md, that is pushing me to a good MVP spot.
-
 **12th August:**
 Now adding persistence (if we add a task and then restart the backend, that task will now stay there)
 So we added persistence by adding our DB.
 
 We now need to work on phase 3 in fable plan which is Honest failure handling
+
+**13th August:**
+Need to deal with HTTP failures (for example the backend being down or something). Right now the user isn't told that. Also if a GET tasks fails, the error is unhandled.

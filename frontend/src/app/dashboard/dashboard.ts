@@ -6,11 +6,12 @@ import { TaskService } from '../tasks/task.service';
 import { JournalService } from '../journal/journal.service';
 import { HabitService } from '../habits/habit.service';
 import { toLocalDate } from '../core/util/date';
+import { ServerErrorBanner } from '../core/server-error-banner';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, ServerErrorBanner],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -31,10 +32,24 @@ export class Dashboard {
   }
 
   // --- Tasks ---
+  // The dashboard reads the same TaskService as the To-Do page, so it inherits
+  // the same two failure states — and has to be just as careful with them. Its
+  // task tiles would otherwise render "0 of 0 done" and a 0% meter when the
+  // server is unreachable, which looks like data rather than an outage.
+  taskLoadState = this.taskService.loadState;
+  taskActionError = this.taskService.actionError;
+  private tasksUnavailable = computed(() => this.taskLoadState() === 'failed');
+
   taskTotal = computed(() => this.taskService.tasks().length);
   taskDone = computed(() => this.taskService.tasks().filter((t) => t.completed).length);
   taskPct = computed(() =>
     this.taskTotal() === 0 ? 0 : Math.round((this.taskDone() / this.taskTotal()) * 100)
+  );
+  // A named computed rather than a conditional in the template: the tile shows
+  // one line of text, and which line it is depends on whether we could reach
+  // the server at all.
+  taskSummary = computed(() =>
+    this.tasksUnavailable() ? 'Unavailable' : `${this.taskDone()} of ${this.taskTotal()} done`
   );
   upNext = computed(() => {
     const priorities = { high: 3, medium: 2, low: 1 };
@@ -67,5 +82,9 @@ export class Dashboard {
     if (!this.captureText.trim()) return;
     this.taskService.addTask(this.captureText, 'medium');
     this.captureText = '';
+  }
+
+  retryLoad() {
+    this.taskService.loadTasks();
   }
 }

@@ -14,14 +14,22 @@
     <button class="btn" (click)="capture()">Create</button>
   </div>
 
+  <!-- The capture box calls the same addTask as the To-Do page, so a failed
+       capture has to be just as visible here as it is there. -->
+  <app-server-error-banner [message]="taskActionError()" />
+
   <div class="stat-grid">
     <a class="card stat" routerLink="/todo">
       <p class="label">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1.5" y="1.5" width="13" height="13" rx="2.5"/><path d="M5 8.2 7.2 10.4 11 5.8"/></svg>
         Tasks
       </p>
-      <p class="value">{{ taskDone() }} of {{ taskTotal() }} done</p>
-      <div class="meter"><b [style.width.%]="taskPct()"></b></div>
+      <p class="value">{{ taskSummary() }}</p>
+      <!-- No meter when the load failed: a bar sitting at 0% reads as "you've
+           done none of them" rather than "we couldn't ask". -->
+      @if (taskLoadState() !== 'failed') {
+        <div class="meter"><b [style.width.%]="taskPct()"></b></div>
+      }
     </a>
 
     <a class="card stat" routerLink="/journal">
@@ -54,19 +62,30 @@
 
   <div class="card today-card">
     <h2>Up next</h2>
-    @for (task of upNext(); track task.id) {
-      <div class="mini-task">
-        <span class="flag" [class.f-high]="task.priority === 'high'" [class.f-medium]="task.priority === 'medium'" [class.f-low]="task.priority === 'low'"></span>
-        {{ task.title }}
-        @if (task.group) {
-          <span class="tag {{ task.group }}">{{ task.group | titlecase }}</span>
-        }
+    <!-- "Nothing waiting on you. Enjoy the quiet." is the worst thing this
+         card could say when the truth is that we never got a task list — so
+         the failed branch has to come first. -->
+    @if (taskLoadState() === 'failed') {
+      <div class="up-next-error">
+        <p class="empty" style="padding: 4px 0">
+          Couldn't reach the server, so we don't know what's waiting on you.
+        </p>
+        <button class="icon-btn" (click)="retryLoad()">Try again</button>
       </div>
-    }
-    @if (upNext().length === 0) {
-      <p class="empty" style="padding: 4px 0">
-        Nothing waiting on you. Enjoy the quiet.
-      </p>
+    } @else if (taskLoadState() === 'ready') {
+      @for (task of upNext(); track task.id) {
+        <div class="mini-task">
+          <span class="flag" [class.f-high]="task.priority === 'high'" [class.f-medium]="task.priority === 'medium'" [class.f-low]="task.priority === 'low'"></span>
+          {{ task.title }}
+          @if (task.group) {
+            <span class="tag {{ task.group }}">{{ task.group | titlecase }}</span>
+          }
+        </div>
+      } @empty {
+        <p class="empty" style="padding: 4px 0">
+          Nothing waiting on you. Enjoy the quiet.
+        </p>
+      }
     }
   </div>
 </section>

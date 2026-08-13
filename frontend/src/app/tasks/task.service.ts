@@ -1,8 +1,15 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Task, TaskCreate, TaskGroup, TaskUpdate } from './task.model';
+import { Task, TaskCreate, TaskGroup, TaskLoadState, TaskUpdate } from './task.model';
 
 const API_URL = 'http://localhost:8000/tasks';
+
+// Each message says what didn't happen *and* what's still true, so the user
+// knows the state of the world without having to guess. Named up here rather
+// than inline so the failure paths read as one set you can compare.
+const ADD_FAILED = "Couldn't add that task — it hasn't been saved.";
+const UPDATE_FAILED = "Couldn't save that change — the task is as it was.";
+const DELETE_FAILED = "Couldn't delete that task — it's still there.";
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
@@ -15,14 +22,37 @@ export class TaskService {
   // ...components get a read-only view of the signal:
   readonly tasks = this.tasksSignal.asReadonly();
 
+  // Two separate failure signals, because they mean different things. A failed
+  // GET means the task list is unknown, so showing it at all would be a lie.
+  // A failed write means the list is still accurate and one action didn't
+  // land — blanking the list there would be a worse lie than the one we're
+  // fixing. Starts as 'loading': at page load we genuinely don't know yet.
+  private loadStateSignal = signal<TaskLoadState>('loading');
+  readonly loadState = this.loadStateSignal.asReadonly();
+
+  private actionErrorSignal = signal<string | null>(null);
+  readonly actionError = this.actionErrorSignal.asReadonly();
+
   constructor() {
-    // Fills the empty signal on startup. If this fails the list stays empty,
-    // which is honest-but-unhelpful: better than the old behaviour of showing
-    // a stale localStorage snapshot as though it were live data. Surfacing the
-    // failure to the user needs an error callback here — still to come.
-    this.http
-      .get<Task[]>(API_URL)
-      .subscribe((tasks) => this.tasksSignal.set(tasks));
+    this.loadTasks();
+  }
+
+  // Public so the UI can offer a retry — without it, a user whose backend was
+  // briefly down has to reload the whole page to recover.
+  loadTasks() {
+    this.loadStateSignal.set('loading');
+    // The observer object form of subscribe: the bare-function form only ever
+    // takes the success path, which is why every failure used to be silent.
+    this.http.get<Task[]>(API_URL).subscribe({
+      next: (tasks) => {
+        this.tasksSignal.set(tasks);
+        this.loadStateSignal.set('ready');
+      },
+      // The error object is deliberately ignored: an HttpErrorResponse's
+      // message is written for developers ("Http failure response for..."),
+      // not for the person looking at the screen.
+      error: () => this.loadStateSignal.set('failed'),
+    });
   }
 
   // '' comes from the form's "No group" option; `group || undefined` makes
@@ -35,8 +65,12 @@ export class TaskService {
       priority,
       group: group || undefined,
     };
-    this.http.post<Task>(API_URL, requestBody).subscribe((createdTask) => {
-      this.tasksSignal.update((tasks) => [...tasks, createdTask]);
+    this.actionErrorSignal.set(null);
+    this.http.post<Task>(API_URL, requestBody).subscribe({
+      next: (createdTask) => {
+        this.tasksSignal.update((tasks) => [...tasks, createdTask]);
+      },
+      error: () => this.actionErrorSignal.set(ADD_FAILED),
     });
   }
 
@@ -45,8 +79,12 @@ export class TaskService {
   // there's deliberately nothing to send back, so we drop the task ourselves
   // rather than waiting for it in the response.
   deleteTask(id: string) {
-    this.http.delete<void>(`${API_URL}/${id}`).subscribe(() => {
-      this.tasksSignal.update((tasks) => tasks.filter((task) => task.id !== id));
+    this.actionErrorSignal.set(null);
+    this.http.delete<void>(`${API_URL}/${id}`).subscribe({
+      next: () => {
+        this.tasksSignal.update((tasks) => tasks.filter((task) => task.id !== id));
+      },
+      error: () => this.actionErrorSignal.set(DELETE_FAILED),
     });
   }
 
@@ -68,10 +106,14 @@ export class TaskService {
   // Taking the server's version rather than merging locally means the two can
   // never quietly disagree about what a task now looks like.
   private patchTask(id: string, changes: TaskUpdate) {
-    this.http.patch<Task>(`${API_URL}/${id}`, changes).subscribe((updatedTask) => {
-      this.tasksSignal.update((tasks) =>
-        tasks.map((task) => (task.id === id ? updatedTask : task))
-      );
+    this.actionErrorSignal.set(null);
+    this.http.patch<Task>(`${API_URL}/${id}`, changes).subscribe({
+      next: (updatedTask) => {
+        this.tasksSignal.update((tasks) =>
+          tasks.map((task) => (task.id === id ? updatedTask : task))
+        );
+      },
+      error: () => this.actionErrorSignal.set(UPDATE_FAILED),
     });
   }
 }

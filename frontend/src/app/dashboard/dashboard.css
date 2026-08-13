@@ -73,6 +73,14 @@
 .today-card { padding: 20px 22px; }
 .today-card h2 { font-size: 0.95rem; margin: 0 0 12px; font-weight: 650; }
 
+/* Message and its retry button on one line, so the card keeps its shape. */
+.up-next-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .mini-task {
   display: flex;
   align-items: center;
