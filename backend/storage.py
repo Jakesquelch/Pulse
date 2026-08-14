@@ -56,6 +56,22 @@ CREATE_COMPLETIONS_TABLE = """
     )
 """
 
+# `createdAt` is camelCase for the same reason the tasks table keeps "group":
+# the row maps straight onto the frontend's JournalEntry with no renaming layer
+# in between. SQLite doesn't mind, and the alternative buys nothing.
+CREATE_JOURNAL_TABLE = """
+    CREATE TABLE IF NOT EXISTS journal_entries (
+        id        TEXT PRIMARY KEY,
+        content   TEXT NOT NULL,
+        createdAt TEXT NOT NULL
+    )
+"""
+
+# Only the content is editable. An entry's id and its timestamp are facts about
+# when it was written, not fields — so there's no code path that can change
+# them, rather than a rule we remember not to break.
+UPDATABLE_ENTRY_COLUMNS = ("content",)
+
 
 @contextmanager
 def _connection():
@@ -88,6 +104,7 @@ def init_db() -> None:
         connection.execute(CREATE_TASKS_TABLE)
         connection.execute(CREATE_HABITS_TABLE)
         connection.execute(CREATE_COMPLETIONS_TABLE)
+        connection.execute(CREATE_JOURNAL_TABLE)
 
 
 # --- Tasks ------------------------------------------------------------------
@@ -299,3 +316,69 @@ def remove_completion(habit_id: str, date: str) -> dict | None:
             (habit_id, date),
         )
         return _fetch_habit(connection, habit_id)
+
+
+# --- Journal ----------------------------------------------------------------
+#
+# The flattest of the three: one table, no relationships, and no conversion on
+# the way out — because the column names already match the frontend's
+# JournalEntry, `dict(row)` *is* the API shape. There's no _row_to_entry here
+# for the same reason there's no work for it to do.
+
+
+def list_entries() -> list[dict]:
+    """Every entry, oldest first.
+
+    The journal page sorts newest-first for display, so this order isn't what
+    you see. It's still worth pinning: the dashboard reads the last element as
+    "most recent", and without ORDER BY that would depend on SQLite's insertion
+    order — true today, and true only by luck.
+    """
+    with _connection() as connection:
+        rows = connection.execute(
+            "SELECT * FROM journal_entries ORDER BY createdAt"
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def create_entry(entry: dict) -> None:
+    """Insert an already-complete entry (id and createdAt included)."""
+    with _connection() as connection:
+        connection.execute(
+            "INSERT INTO journal_entries (id, content, createdAt) VALUES (?, ?, ?)",
+            (entry["id"], entry["content"], entry["createdAt"]),
+        )
+
+
+def update_entry(entry_id: str, changes: dict) -> dict | None:
+    """Apply a partial update, returning the stored entry afterwards.
+
+    No dynamic SET clause like update_task's: with exactly one updatable
+    column there's no combination of fields to build for, and spelling the
+    statement out is clearer than a loop over a one-item tuple.
+    """
+    unknown_columns = set(changes) - set(UPDATABLE_ENTRY_COLUMNS)
+    if unknown_columns:
+        raise ValueError(f"Cannot update unknown columns: {sorted(unknown_columns)}")
+
+    with _connection() as connection:
+        # An empty PATCH body is a valid no-op, same as for tasks.
+        if "content" in changes:
+            connection.execute(
+                "UPDATE journal_entries SET content = ? WHERE id = ?",
+                (changes["content"], entry_id),
+            )
+        row = connection.execute(
+            "SELECT * FROM journal_entries WHERE id = ?", (entry_id,)
+        ).fetchone()
+
+    return dict(row) if row else None
+
+
+def delete_entry(entry_id: str) -> bool:
+    """Delete an entry, returning whether one existed to delete."""
+    with _connection() as connection:
+        cursor = connection.execute(
+            "DELETE FROM journal_entries WHERE id = ?", (entry_id,)
+        )
+    return cursor.rowcount > 0

@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
@@ -193,3 +193,74 @@ def remove_completion(habit_id: str, completion_date: date):
     if habit is None:
         raise HTTPException(status_code=404, detail=f"No habit with id {habit_id}")
     return habit
+
+
+# --- Journal ----------------------------------------------------------------
+
+# `createdAt` is camelCase to mirror the frontend's JournalEntry, same as
+# `completedDates` above. It's a str rather than a datetime so the value the
+# client sees is byte-for-byte the one in the database — no reformatting on the
+# way out to quietly disagree with what's stored.
+class JournalEntry(BaseModel):
+    id: str
+    content: str
+    createdAt: str
+
+# Content and nothing else. The server owns the id *and* the timestamp: "when
+# this was written" is a fact to be recorded, not a field for the client to
+# assert, and a field that isn't modelled here is one Pydantic drops.
+class JournalEntryCreate(BaseModel):
+    content: str
+
+# Only `content`, because only content is editable. Optional because PATCH
+# means "change what I send" — and with one field that mostly means an empty
+# body is a legal no-op rather than an error.
+class JournalEntryUpdate(BaseModel):
+    content: str | None = None
+
+def _now_iso() -> str:
+    """The current UTC time as e.g. "2026-08-14T10:52:03.117Z".
+
+    The exact format is load-bearing twice over: `ORDER BY createdAt` sorts
+    these as plain strings, which only matches chronological order while every
+    row has the same shape and offset — and the frontend's JournalEntry
+    documents this spelling. `timespec` pins the precision, and the replace
+    swaps Python's "+00:00" for the "Z" the frontend already expects.
+    """
+    return (
+        datetime.now(timezone.utc)
+        .isoformat(timespec="milliseconds")
+        .replace("+00:00", "Z")
+    )
+
+@app.get("/journal", response_model=list[JournalEntry])
+def get_entries():
+    return storage.list_entries()
+
+@app.post("/journal", response_model=JournalEntry)
+def create_entry(entry: JournalEntryCreate):
+    new_entry = {
+        "id": str(uuid.uuid4()),
+        "createdAt": _now_iso(),
+        **entry.model_dump(),
+    }
+    storage.create_entry(new_entry)
+    return new_entry
+
+@app.delete("/journal/{entry_id}", status_code=204)
+def delete_entry(entry_id: str):
+    if not storage.delete_entry(entry_id):
+        raise HTTPException(status_code=404, detail=f"No entry with id {entry_id}")
+
+# Note what editing an entry deliberately does *not* do: touch createdAt. The
+# timestamp records when the entry was written, and rewording it later doesn't
+# change when you wrote it — so an edited entry keeps its place in the journal.
+@app.patch("/journal/{entry_id}", response_model=JournalEntry)
+def update_entry(entry_id: str, updates: JournalEntryUpdate):
+    requested_changes = updates.model_dump(exclude_unset=True)
+    updated_entry = storage.update_entry(entry_id, requested_changes)
+
+    if updated_entry is None:
+        raise HTTPException(status_code=404, detail=f"No entry with id {entry_id}")
+
+    return updated_entry

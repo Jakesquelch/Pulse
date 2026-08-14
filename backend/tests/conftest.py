@@ -64,3 +64,10 @@ def created_habit(client):
     """One habit already in the database, with no completions yet."""
     response = client.post("/habits", json={"name": "Stretch"})
     return response.json()
+
+
+@pytest.fixture
+def created_entry(client):
+    """One journal entry already in the database."""
+    response = client.post("/journal", json={"content": "Existing thoughts"})
+    return response.json()
