@@ -80,6 +80,8 @@ Updated frontend tests and added backend tests too.
 Now migrating habit and journal stuff (they are still using localStorage)
 - Update comments and docs that are stale/outdated
 
+MVP IS NOW DONE!
+
 Post MVP stuff to do:
 - Look at the App from a UX POV and improve it, also make UI improvements
 - Add more tests (add component tests too)

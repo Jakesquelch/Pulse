@@ -5,8 +5,10 @@ Written 11th August, mid-migration. State when written: `GET /tasks` and
 localStorage-only ghosts (the zombie-task bug). Habits and journal are pure
 localStorage. Backend storage is an in-memory list that dies on restart.
 
-> **Progress:** Phase 1 ✅ (11th Aug) · Phase 2 ✅ (12th Aug) ·
-> **Phase 3 is next.** Phases 4–5 not started.
+> **Progress: all five phases done.** Phase 1 ✅ (11th Aug) · Phase 2 ✅
+> (12th Aug) · Phase 3 ✅ (13th Aug) · Phase 4 ✅ (14th Aug) · Phase 5 ✅
+> (14th Aug). The MVP as scoped below is complete — see the bottom of this
+> file for what that turned out to mean.
 
 The ordering below is deliberate: **finish CRUD before persistence**, so you
 persist a complete, correct API rather than retrofitting endpoints onto a
@@ -70,7 +72,7 @@ genuinely production-grade for a single-user app. Not a toy compromise.
 
 **Done when:** add a task, kill uvicorn, restart, refresh — it's still there.
 
-## Phase 3 — Honest failure handling ← **next**
+## Phase 3 — Honest failure handling ✅ done 13th Aug
 
 Right now every failure is silent: no `subscribe` has an error callback, so
 a dead backend looks like stale-but-normal data. Fine mid-migration,
@@ -85,15 +87,30 @@ disqualifying for an MVP calling itself stable.
 - Backend tests: `pytest` + FastAPI's `TestClient` — the backend twin of
   the Vitest specs. Test the 404s especially; error paths rot fastest.
 
-## Phase 4 — Migrate habits and journal
+## Phase 4 — Migrate habits and journal ✅ done 14th Aug
 
-Repetition on purpose: same endpoints, same wiring, same retirement of
-`persistedSignal`, but done mostly from memory this time. That's the test
-of whether Phase 1–2 knowledge stuck. Two new tables in the same SQLite
-file. After this, `persistedSignal` has no callers left — delete it and its
-spec, and the localStorage era is over.
+Planned as repetition; it wasn't, quite, and that was the useful part.
 
-## Phase 5 — MVP polish
+Habits turned out to be the first thing in the project that doesn't fit in one
+row: `completedDates` is a list, so it became a second table
+(`habit_completions`) with a composite primary key `(habit_id, date)` and
+`ON DELETE CASCADE`. That in turn forced a real API design question, because
+"toggle" isn't something a server can act on idempotently — a completion
+became its own resource at `/habits/{id}/completions/{date}`, marked with PUT
+and unmarked with DELETE. The trap met along the way: SQLite has foreign keys
+**off** by default, per connection, so the CASCADE silently does nothing
+without `PRAGMA foreign_keys = ON`.
+
+Journal was the flat one, with one new decision: `createdAt` is server-owned
+like `id`, and no edit can change it.
+
+Three copies of the same UI also proved which pieces were genuinely shared, so
+`LoadState`, `LoadErrorPanel` and `ServerErrorBanner` moved to `core/`.
+
+And as planned: `persistedSignal` and its spec are deleted. The localStorage
+era is over — the theme is all that's left there.
+
+## Phase 5 — MVP polish ✅ done 14th Aug
 
 - `README.md`: how to run both halves from a fresh clone (venv setup,
   `pip install -r requirements.txt`, `uvicorn main:app --reload`,
@@ -113,10 +130,39 @@ the MVP. Resist scope creep; the 6th Aug tracker entry knows why.
 
 ## Rough session map
 
-| Session | Focus |
-|---|---|
-| 1 | DELETE + PATCH endpoints, frontend wiring, retire seam from tasks |
-| 2 | SQLite: schema, storage module, endpoints read/write the DB |
-| 3 | Error/loading states + pytest suite |
-| 4–5 | Habits, then journal (increasingly solo) |
-| 6 | Polish: README, environments, doc sweep |
+| Session | Focus | |
+|---|---|---|
+| 1 | DELETE + PATCH endpoints, frontend wiring, retire seam from tasks | ✅ 11th Aug |
+| 2 | SQLite: schema, storage module, endpoints read/write the DB | ✅ 12th Aug |
+| 3 | Error/loading states + pytest suite | ✅ 13th Aug |
+| 4–5 | Habits, then journal (increasingly solo) | ✅ 14th Aug |
+| 6 | Polish: README, environments, doc sweep | ✅ 14th Aug |
+
+Six sessions estimated, four days actual — sessions 4, 5 and 6 landed together.
+
+---
+
+## What the MVP turned out to be
+
+Finished on 14th August 2026. Two programs, four SQLite tables, 115 tests
+(67 backend, 48 frontend), and no localStorage outside the theme switcher.
+
+Everything in "explicitly out of scope" above stayed out of scope, which is
+the part worth noticing.
+
+Three known gaps, recorded rather than fixed, because none of them block the
+MVP as scoped:
+
+- **No component tests.** Every test is a service or an endpoint; templates are
+  checked only by the compiler.
+- **Typed text is lost if a write fails.** Both composers clear their input on
+  submit, before the request lands. Worst on the journal. Fixing it properly
+  means services reporting success back to components — a change to a pattern
+  all three share, so it deserves its own session rather than a quick patch.
+- **Pre-migration localStorage data is stranded.** `pulse-habits` and
+  `pulse-journal` still hold whatever was written before 14th Aug, and nothing
+  reads those keys now. Recoverable with a one-off import; invisible until then.
+
+Natural next steps, in rough order of value: the write-failure fix above,
+component tests, then whichever of the "future ideas" in `features.md` you
+actually want. Auth and deployment remain out of scope until there's a reason.

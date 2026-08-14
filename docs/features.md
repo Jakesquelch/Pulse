@@ -4,8 +4,10 @@
 
 This document provides a breakdown of all features, their current implementation status, and what remains to be built.
 
-Last major update: 12th August 2026 (FastAPI backend + SQLite persistence for
-tasks — see `fable-plan.md` for the phased migration this is part of).
+Last major update: 14th August 2026 — the migration is **finished**. All three
+features are backend-backed by SQLite via the API, honest failure states are in
+place, and `persistedSignal` is deleted. See `fable-plan.md` for the phases
+this completed.
 
 ---
 
@@ -43,8 +45,10 @@ Task management with priorities, optional grouping, and persistence.
 - ✅ Delete (Edit/Delete revealed on row hover)
 - ✅ **Persistence via the backend API + SQLite** — every add/edit/toggle/delete
   is a real HTTP call; data survives a server restart
-- ✅ Empty state message
-- ⚠️ No error state yet if the backend is unreachable (Phase 3)
+- ✅ Empty state message (only once the load has landed — never before)
+- ✅ **Honest failure states** — a "couldn't reach the server" panel with a
+  retry button when the load fails, and a banner above the still-accurate list
+  when a single write fails
 
 ### Technical Implementation:
 - Model: `tasks/task.model.ts` (`id`, `title`, `completed`, `priority`, `group?`),
@@ -76,11 +80,19 @@ Free-form journaling — the heart of the "dump your mind" idea.
 - ✅ Edit and delete (revealed on hover)
 - ✅ Multi-line entries preserved (`white-space: pre-wrap`)
 - ✅ Serif reading typography for entry text
-- ✅ **Persistence via localStorage** (`pulse-journal`)
+- ✅ **Persistence via the backend API + SQLite** — the `journal_entries` table
+- ✅ **Server-owned timestamps** — `createdAt` is stamped by the server, and no
+  edit can change it, so rewording an entry never moves its place in the journal
+- ✅ Honest failure states (same load panel + write banner as tasks)
 
 ### Technical Implementation:
-- Model: `journal/journal-entry.model.ts` (`id`, `content`, `createdAt` ISO timestamp)
-- `journal/journal.service.ts` — same signal + localStorage pattern as tasks
+- Model: `journal/journal-entry.model.ts` (`id`, `content`, `createdAt` ISO
+  timestamp), plus `JournalEntryCreate` (just `{ content }`) and
+  `JournalEntryUpdate` — mirrored by Pydantic models in `backend/main.py`
+- `journal/journal.service.ts` — the same cache-signal + `HttpClient` pattern
+  as tasks, with `loadState` and `actionError`
+- Backend: `GET`/`POST`/`DELETE`/`PATCH` on `/journal`; entries returned
+  oldest-first so the dashboard's "last entry" is well-defined
 
 ### Future Ideas:
 - [ ] Tags / mood tracking
@@ -102,11 +114,18 @@ Daily habit tracking over a rolling 7-day window.
 - ✅ Last 7 days as clickable day cells (weekday + day number, today outlined)
 - ✅ Toggle any of the 7 days done/undone
 - ✅ 🔥 Streak counter (consecutive days, forgiving of an unticked today)
-- ✅ **Persistence via localStorage** (`pulse-habits`)
+- ✅ **Persistence via the backend API + SQLite** — two tables, `habits` and
+  `habit_completions`, one row per day done
+- ✅ Ticking a day is idempotent — double-clicks and retries can't double-record
+- ✅ Honest failure states (same load panel + write banner as tasks)
 
 ### Technical Implementation:
 - Model: `habits/habit.model.ts` (`id`, `name`, `completedDates: string[]` of local `"YYYY-MM-DD"` strings)
-- `habits/habit.service.ts` — same signal + localStorage pattern
+  plus `HabitCreate` (just `{ name }`) — mirrored by Pydantic models in `backend/main.py`
+- `habits/habit.service.ts` — the same cache-signal + `HttpClient` pattern as tasks
+- Backend: `GET`/`POST`/`DELETE` on `/habits`, plus a completion sub-resource —
+  `PUT`/`DELETE /habits/{id}/completions/{date}` — so the client sends an
+  unambiguous instruction rather than "flip it, whatever it is"
 - Local-date helper in `core/util/date.ts` (avoids the UTC off-by-one-day pitfall)
 
 ### Future Ideas:
@@ -141,25 +160,26 @@ Daily habit tracking over a rolling 7-day window.
 
 ## 🌐 Backend & API
 
-### Status: ⚠️ IN PROGRESS — tasks migrated, journal/habits not yet
+### Status: ✅ COMPLETE for the MVP — all three features migrated
 
 Python **FastAPI** backend (`backend/`) with **SQLite**, using the stdlib
 `sqlite3` module directly — **no ORM**, a deliberate choice to write the SQL by
 hand and learn what an ORM would hide. Run it with `./run-backend.sh`
 (`http://localhost:8000`, interactive docs at `/docs`).
 
-- ✅ REST API for tasks — `GET`, `POST`, `PATCH`, `DELETE` with 404s on unknown ids
-- ✅ SQLite persistence — `backend/pulse.db`, all SQL in `backend/storage.py`
+- ✅ REST API for all three features, with 404s on unknown ids
+- ✅ SQLite persistence — `backend/pulse.db`, all SQL in `backend/storage.py`,
+  four tables (`tasks`, `habits`, `habit_completions`, `journal_entries`)
 - ✅ Angular `HttpClient` integration + CORS (`localhost:4200` allowed explicitly)
-- ✅ Pydantic models mirroring the frontend's `Task` / `TaskCreate` / `TaskUpdate`
-- [ ] Error + loading states in the UI when the server is unreachable (Phase 3)
-- [ ] Backend tests (`pytest` + FastAPI `TestClient`)
-- [ ] Journal and habit endpoints (Phase 4) — after which `persistedSignal` is deleted
-- [ ] `http://localhost:8000` moved out of the services into `environments/` (Phase 5)
+- ✅ Pydantic models mirroring every frontend model, `response_model=` on every
+  endpoint so what goes *out* is validated too
+- ✅ Error + loading states in the UI when the server is unreachable
+- ✅ Backend tests — `pytest` + FastAPI `TestClient`
+- ✅ `apiUrl` moved out of the services into `src/environments/environment.ts`
 
-**Note:** the app now requires the backend to be running. Offline-first support
-(a local cache with a write queue) is out of scope for the MVP — the plan is to
-*report* an unreachable server honestly, not to work around it.
+**Note:** the app requires the backend to be running. Offline-first support
+(a local cache with a write queue) is out of scope for the MVP — the app
+*reports* an unreachable server honestly rather than working around it.
 
 ---
 
@@ -176,20 +196,38 @@ The new layout is desktop-oriented; the sidebar shell needs a mobile treatment.
 
 ## 🧪 Testing
 
-### Status: ⚠️ IN PROGRESS
+### Status: ✅ SERVICE + API LEVEL DONE — 115 tests
 
-Vitest (jsdom) via `ng test`; specs live next to the service they test.
+Two suites that mirror each other: the frontend specs fake the *network* to
+test services without a server, the backend tests fake the *database* to test
+the server without a browser. Both run with nothing else switched on.
 
-- ✅ `TaskService` spec — rewritten against the API using
-  `provideHttpClientTesting`: asserts the right verb/URL/body per call, that the
-  signal only changes once the server responds, and that PATCH stores the
-  server's version rather than a locally merged one
-- ✅ `HabitService` spec — same coverage + `toggleDate` behavior
-- ✅ `JournalService` spec — same coverage + `createdAt` stamping/preservation
-- ✅ `persistedSignal` spec — load/fallback/auto-save + corrupt-data backup
-  (replaced the three per-service "silent wipe" characterization tests when
-  the seam refactor fixed the flaw they pinned). Retires with the seam in Phase 4.
-- [ ] Backend tests — `pytest` + FastAPI `TestClient`, the backend twin of these
+**Frontend — 48 tests, Vitest (jsdom) via `ng test`**, specs next to the
+service they test, all using `provideHttpClientTesting`:
+
+- ✅ `TaskService` — right verb/URL/body per call, the signal only changes once
+  the server responds, PATCH stores the server's version not a local merge
+- ✅ `HabitService` — same, plus `toggleDate` picking PUT vs DELETE from local
+  state, taking the server's date ordering, and sending nothing for an unknown id
+- ✅ `JournalService` — same, plus `createdAt` coming from the server and
+  surviving an edit
+- ✅ Failure handling in all three — load failure, retry recovery, each write
+  failing without corrupting the cached list, and errors clearing on success
+
+**Backend — 67 tests, `pytest` + FastAPI `TestClient`** against a throwaway
+database in a temp folder (never `pulse.db`):
+
+- ✅ `test_tasks.py` — CRUD, the group contract, PATCH semantics, error paths
+- ✅ `test_habits.py` — completions, idempotence, ordering, and the CASCADE
+  (that one was verified by removing the `PRAGMA foreign_keys = ON` and
+  confirming it fails)
+- ✅ `test_journal.py` — server-owned `createdAt`, its format, immutability
+  under edit, and ordering
+
+Not covered: **component tests.** Every spec here is a service or an endpoint;
+nothing exercises a template, so a broken `@if` in a page would compile and
+pass. `ng build` catches type errors in templates, which is a floor, not a net.
+
 - [ ] Component tests
 
 ---
@@ -206,17 +244,25 @@ Vitest (jsdom) via `ng test`; specs live next to the service they test.
 ## Summary
 
 ### Completion Status:
-- **Dashboard:** ✅ done
+- **Dashboard:** ✅ done, and honest when any of the three services can't load
 - **To-Do List:** ✅ core done, fully backend-backed
-- **Journal:** ✅ core done (still localStorage)
-- **Habit Tracker:** ✅ core done (still localStorage)
+- **Journal:** ✅ core done, fully backend-backed
+- **Habit Tracker:** ✅ core done, fully backend-backed
 - **Design system / theming:** ✅ done
-- **Backend/API:** ⚠️ tasks migrated; journal/habits to follow
-- **Authentication:** ❌
-- **Testing:** ⚠️ all frontend service specs done; backend + component tests remain
-- **Deployment:** ❌
+- **Backend/API:** ✅ all three features migrated, 67 tests
+- **Authentication:** ❌ (out of scope for the MVP)
+- **Testing:** ✅ service + API level; ⚠️ no component tests
+- **Deployment:** ❌ (out of scope for the MVP)
 
-Pulse is now genuinely two programs, and tasks are real data on disk rather than
-a per-browser copy. Remaining for the MVP, in order: honest error/loading states,
-then the same migration for journal and habits, then polish (README,
-`environments/` config, doc sweep). Auth and sync stay out of scope.
+Pulse is genuinely two programs, and every module is real data on disk rather
+than a per-browser copy. The MVP as scoped in `fable-plan.md` is complete: CRUD,
+persistence, honest failure handling, all three features migrated, and polish.
+
+Known gaps, none of them blocking:
+- **No component tests** — templates are only checked by the compiler.
+- **Typed text is lost if a write fails.** Both composers clear the input on
+  submit, before the POST lands, so a failed add loses what you typed. Worst on
+  the journal, where it could be a paragraph.
+- **Old localStorage data is stranded.** Anything written under `pulse-habits`
+  or `pulse-journal` before 14th Aug is still in the browser and unread by any
+  code. Recoverable with a one-off import; not lost, but not visible.
