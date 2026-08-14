@@ -75,3 +75,12 @@ We now need to work on phase 3 in fable plan which is Honest failure handling
 **13th August:**
 Need to deal with HTTP failures (for example the backend being down or something). Right now the user isn't told that. Also if a GET tasks fails, the error is unhandled.
 Updated frontend tests and added backend tests too.
+
+**14th August:**
+Now migrating habit and journal stuff (they are still using localStorage)
+
+Post MVP stuff to do:
+- Look at the App from a UX POV and improve it, also make UI improvements
+- Add more tests (add component tests too)
+- Can we tweak localhost:8000/docs so that the endpoints are sectioned into habit, journal, todo etc
+- Get playwright MCP to walk through the app

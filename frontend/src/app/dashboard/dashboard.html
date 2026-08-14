@@ -70,7 +70,7 @@
         <p class="empty" style="padding: 4px 0">
           Couldn't reach the server, so we don't know what's waiting on you.
         </p>
-        <button class="icon-btn" (click)="retryLoad()">Try again</button>
+        <button class="btn" (click)="retryLoad()">Try again</button>
       </div>
     } @else if (taskLoadState() === 'ready') {
       @for (task of upNext(); track task.id) {

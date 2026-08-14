@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
@@ -106,3 +107,72 @@ def update_task(task_id: str, updates: TaskUpdate):
         raise HTTPException(status_code=404, detail=f"No task with id {task_id}")
 
     return updated_task
+
+
+# --- Habits -----------------------------------------------------------------
+
+# `completedDates` is camelCase in a Python file on purpose. Pydantic field
+# names *are* the JSON keys, and this model's job is to mirror the frontend's
+# `Habit` interface exactly — same reasoning as the quoted "group" column in
+# storage.py. A snake_case name here would need an alias to produce the same
+# JSON, which is a translation layer earning nothing.
+class Habit(BaseModel):
+    id: str
+    name: str
+    completedDates: list[str]
+
+# The client sends a name and nothing else: the server owns the id, and a new
+# habit has no completions by definition — there's no "created already done".
+class HabitCreate(BaseModel):
+    name: str
+
+@app.get("/habits", response_model=list[Habit])
+def get_habits():
+    return storage.list_habits()
+
+@app.post("/habits", response_model=Habit)
+def create_habit(habit: HabitCreate):
+    new_habit = {
+        "id": str(uuid.uuid4()),
+        "completedDates": [],
+        **habit.model_dump(),
+    }
+    storage.create_habit(new_habit)
+    return new_habit
+
+# 204 like the task delete: a deleted habit has nothing left to return. Its
+# completion rows go with it, via ON DELETE CASCADE in the schema.
+@app.delete("/habits/{habit_id}", status_code=204)
+def delete_habit(habit_id: str):
+    if not storage.delete_habit(habit_id):
+        raise HTTPException(status_code=404, detail=f"No habit with id {habit_id}")
+
+# A completion is its own resource, and its URL names it fully: this habit,
+# this date. That's what lets the two verbs below carry no request body at all.
+#
+# PUT rather than POST because PUT means "make this URL exist", which is
+# idempotent — ticking an already-ticked day is a no-op, not a duplicate.
+#
+# `completion_date: date` is doing validation for free: FastAPI parses the path
+# segment into a real date, so "banana" is rejected with a 422 before any of
+# our code runs. The frontend's `completedDates: string[]` comment promises
+# YYYY-MM-DD; this is the backend holding it to that promise.
+COMPLETION_URL = "/habits/{habit_id}/completions/{completion_date}"
+
+# Unlike DELETE /tasks, both of these answer with the whole updated habit. The
+# habit still exists and is still on screen, so handing back the server's
+# version keeps the client from having to guess what its list looks like now —
+# the same reasoning as PATCH /tasks returning the updated task.
+@app.put(COMPLETION_URL, response_model=Habit)
+def add_completion(habit_id: str, completion_date: date):
+    habit = storage.add_completion(habit_id, completion_date.isoformat())
+    if habit is None:
+        raise HTTPException(status_code=404, detail=f"No habit with id {habit_id}")
+    return habit
+
+@app.delete(COMPLETION_URL, response_model=Habit)
+def remove_completion(habit_id: str, completion_date: date):
+    habit = storage.remove_completion(habit_id, completion_date.isoformat())
+    if habit is None:
+        raise HTTPException(status_code=404, detail=f"No habit with id {habit_id}")
+    return habit

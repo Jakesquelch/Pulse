@@ -57,3 +57,10 @@ def created_task(client):
     """
     response = client.post("/tasks", json={"title": "Existing", "priority": "medium"})
     return response.json()
+
+
+@pytest.fixture
+def created_habit(client):
+    """One habit already in the database, with no completions yet."""
+    response = client.post("/habits", json={"name": "Stretch"})
+    return response.json()
