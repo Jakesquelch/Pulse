@@ -1,9 +1,10 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { LoadState } from '../core/load-state';
+import { environment } from '../../environments/environment';
 import { Habit, HabitCreate } from './habit.model';
 
-const API_URL = 'http://localhost:8000/habits';
+const API_URL = `${environment.apiUrl}/habits`;
 
 // Same shape of message as TaskService's: what didn't happen, and what's still
 // true — so the user never has to guess the state of the world.

@@ -1,9 +1,10 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { LoadState } from '../core/load-state';
+import { environment } from '../../environments/environment';
 import { JournalEntry, JournalEntryCreate, JournalEntryUpdate } from './journal-entry.model';
 
-const API_URL = 'http://localhost:8000/journal';
+const API_URL = `${environment.apiUrl}/journal`;
 
 // Same shape of message as the other two services: what didn't happen, and
 // what's still true.

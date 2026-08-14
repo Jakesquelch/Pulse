@@ -1,4 +1,5 @@
 import { Component, output } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 /**
  * The "we couldn't load this at all" panel, shared by every page backed by
@@ -19,7 +20,7 @@ import { Component, output } from '@angular/core';
     <div class="load-error" role="alert">
       <p class="load-error-text">
         Couldn't reach the server, so there's nothing to show. Check the backend
-        is running on localhost:8000.
+        is running on {{ apiUrl }}.
       </p>
       <button class="btn" (click)="retry.emit()">Try again</button>
     </div>
@@ -45,4 +46,9 @@ export class LoadErrorPanel {
   // An output rather than a URL or a service: this component knows how to say
   // "that didn't work", and nothing about how to make it work.
   retry = output<void>();
+
+  // Templates can't reach a module-level import, so it's re-exposed as a
+  // field. Read from environment rather than typed out, so the address in the
+  // message can't drift from the one the app actually calls.
+  readonly apiUrl = environment.apiUrl;
 }

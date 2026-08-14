@@ -3,8 +3,11 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Habit } from './habit.model';
 import { HabitService } from './habit.service';
+import { environment } from '../../environments/environment';
 
-const API_URL = 'http://localhost:8000/habits';
+// From environment for the same reason as the task spec: the base URL is
+// configuration, not behaviour under test.
+const API_URL = `${environment.apiUrl}/habits`;
 
 // A complete Habit with sensible defaults, so each test only states the fields
 // it actually cares about.

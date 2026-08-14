@@ -6,8 +6,12 @@ import {
 } from '@angular/common/http/testing';
 import { Task } from './task.model';
 import { TaskService } from './task.service';
+import { environment } from '../../environments/environment';
 
-const API_URL = 'http://localhost:8000/tasks';
+// Built from environment rather than typed out, so changing the API's address
+// doesn't break the suite. What's under test is the path and the verb — the
+// base URL is configuration, and a wrong one shows up the moment you run the app.
+const API_URL = `${environment.apiUrl}/tasks`;
 
 // A complete Task with sensible defaults, so each test only has to state the
 // fields it actually cares about.

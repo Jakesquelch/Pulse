@@ -1,9 +1,10 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { LoadState } from '../core/load-state';
+import { environment } from '../../environments/environment';
 import { Task, TaskCreate, TaskGroup, TaskUpdate } from './task.model';
 
-const API_URL = 'http://localhost:8000/tasks';
+const API_URL = `${environment.apiUrl}/tasks`;
 
 // Each message says what didn't happen *and* what's still true, so the user
 // knows the state of the world without having to guess. Named up here rather

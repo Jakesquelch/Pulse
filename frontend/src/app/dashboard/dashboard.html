@@ -68,7 +68,7 @@
     @if (taskLoadState() === 'failed') {
       <div class="up-next-error">
         <p class="empty" style="padding: 4px 0">
-          Couldn't reach the server, so we don't know what's waiting on you. Check the backend is running on localhost:8000.
+          Couldn't reach the server, so we don't know what's waiting on you. Check the backend is running on {{ apiUrl }}.
         </p>
         <button class="btn" (click)="retryLoad()">Try again</button>
       </div>

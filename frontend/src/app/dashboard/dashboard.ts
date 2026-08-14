@@ -7,6 +7,7 @@ import { JournalService } from '../journal/journal.service';
 import { HabitService } from '../habits/habit.service';
 import { toLocalDate } from '../core/util/date';
 import { ServerErrorBanner } from '../core/server-error-banner';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,6 +24,9 @@ export class Dashboard {
   captureText = '';
   today = new Date();
   greeting = this.buildGreeting();
+  // Shown in the "couldn't reach the server" message below, from the same
+  // source the services call — so the address quoted is always the real one.
+  readonly apiUrl = environment.apiUrl;
 
   private buildGreeting(): string {
     const hour = new Date().getHours();
