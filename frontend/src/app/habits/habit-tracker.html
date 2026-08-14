@@ -1,5 +1,9 @@
 <section class="page">
-  <p class="eyebrow">{{ doneToday() }} of {{ habits().length }} done today</p>
+  <!-- Only once the GET has landed: "0 of 0 done today" during loading is a
+       claim about data we haven't got yet. -->
+  @if (loadState() === 'ready') {
+    <p class="eyebrow">{{ doneToday() }} of {{ habits().length }} done today</p>
+  }
   <h1 class="page-title">Habits</h1>
   <p class="page-sub">Your habits are what make you. Consistency over a prolonged duration is the key.</p>
 
@@ -8,36 +12,48 @@
     <button class="btn" (click)="addHabit()">Add habit</button>
   </div>
 
-  @for (habit of habits(); track habit.id) {
-    <div class="card habit-row">
-      <div class="habit-top">
-        <strong>{{ habit.name }}</strong>
-        @if (streak(habit) > 0) {
-          <span class="pill md streak">🔥 {{ streak(habit) }} day streak</span>
-        }
-        <span class="habit-actions">
-          <button class="icon-btn danger" (click)="deleteHabit(habit.id)">Delete</button>
-        </span>
-      </div>
-      <div class="week">
-        @for (day of recentDays; track day) {
-          <button
-            class="day"
-            [class.on]="isDone(habit, day.date)"
-            [class.today]="day.date === today"
-            [title]="day.date"
-            (click)="toggleDay(habit, day.date)"
-            >
-            {{ day.label }}<b>{{ day.dayNum }}</b>
-          </button>
-        }
-      </div>
-    </div>
-  }
+  <!-- A write failed. The habits below are still accurate, so they stay on
+       screen and this sits above them. Renders nothing when there's no error. -->
+  <app-server-error-banner [message]="actionError()" />
 
-  @if (habits().length === 0) {
-    <p class="empty" style="padding-left: 0">
-      No habits yet — start with something small.
-    </p>
+  @if (loadState() === 'failed') {
+    <div class="card">
+      <app-load-error-panel (retry)="retryLoad()" />
+    </div>
+  } @else if (loadState() === 'ready') {
+    @for (habit of habits(); track habit.id) {
+      <div class="card habit-row">
+        <div class="habit-top">
+          <strong>{{ habit.name }}</strong>
+          @if (streak(habit) > 0) {
+            <span class="pill md streak">🔥 {{ streak(habit) }} day streak</span>
+          }
+          <span class="habit-actions">
+            <button class="icon-btn danger" (click)="deleteHabit(habit.id)">Delete</button>
+          </span>
+        </div>
+        <div class="week">
+          @for (day of recentDays; track day) {
+            <button
+              class="day"
+              [class.on]="isDone(habit, day.date)"
+              [class.today]="day.date === today"
+              [title]="day.date"
+              (click)="toggleDay(habit, day.date)"
+              >
+              {{ day.label }}<b>{{ day.dayNum }}</b>
+            </button>
+          }
+        </div>
+      </div>
+    } @empty {
+      <!-- @empty rather than a separate length check: it can only run inside
+           the 'ready' branch, so it can't claim "no habits" before we know. -->
+      <p class="empty" style="padding-left: 0">
+        No habits yet — start with something small.
+      </p>
+    }
   }
+  <!-- 'loading' renders nothing on purpose, same as the tasks page: at
+       localhost speed a spinner would flash and vanish. -->
 </section>

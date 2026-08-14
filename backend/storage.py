@@ -82,6 +82,28 @@ def _connection():
         connection.close()
 
 
+def init_db() -> None:
+    """Create any tables this database is missing."""
+    with _connection() as connection:
+        connection.execute(CREATE_TASKS_TABLE)
+        connection.execute(CREATE_HABITS_TABLE)
+        connection.execute(CREATE_COMPLETIONS_TABLE)
+
+
+# --- Tasks ------------------------------------------------------------------
+#
+# The simple case, and worth reading before the habits section below: a task is
+# exactly one row in one table, so each function here is essentially one SQL
+# statement with a name on it.
+#
+# Two conventions hold across both sections. Everything takes and returns plain
+# dicts, never Pydantic models — main.py owns the HTTP shapes, this module owns
+# the storage ones, and neither imports the other's. And "not found" is
+# reported as a return value (None, or False from a delete) rather than an
+# exception, because whether a missing row is a 404 or a shrug is an HTTP
+# decision, and HTTP decisions don't belong in here.
+
+
 def _row_to_task(row: sqlite3.Row) -> dict:
     """Convert a database row into the dict shape the API returns.
 
@@ -91,14 +113,6 @@ def _row_to_task(row: sqlite3.Row) -> dict:
     task = dict(row)
     task["completed"] = bool(task["completed"])
     return task
-
-
-def init_db() -> None:
-    """Create any tables this database is missing."""
-    with _connection() as connection:
-        connection.execute(CREATE_TASKS_TABLE)
-        connection.execute(CREATE_HABITS_TABLE)
-        connection.execute(CREATE_COMPLETIONS_TABLE)
 
 
 def list_tasks() -> list[dict]:

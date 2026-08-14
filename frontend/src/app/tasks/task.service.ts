@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Task, TaskCreate, TaskGroup, TaskLoadState, TaskUpdate } from './task.model';
+import { LoadState } from '../core/load-state';
+import { Task, TaskCreate, TaskGroup, TaskUpdate } from './task.model';
 
 const API_URL = 'http://localhost:8000/tasks';
 
@@ -27,7 +28,7 @@ export class TaskService {
   // A failed write means the list is still accurate and one action didn't
   // land — blanking the list there would be a worse lie than the one we're
   // fixing. Starts as 'loading': at page load we genuinely don't know yet.
-  private loadStateSignal = signal<TaskLoadState>('loading');
+  private loadStateSignal = signal<LoadState>('loading');
   readonly loadState = this.loadStateSignal.asReadonly();
 
   private actionErrorSignal = signal<string | null>(null);

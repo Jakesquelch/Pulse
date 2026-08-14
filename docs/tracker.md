@@ -78,6 +78,7 @@ Updated frontend tests and added backend tests too.
 
 **14th August:**
 Now migrating habit and journal stuff (they are still using localStorage)
+- Update comments and docs that are stale/outdated
 
 Post MVP stuff to do:
 - Look at the App from a UX POV and improve it, also make UI improvements

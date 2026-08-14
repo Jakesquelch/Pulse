@@ -25,13 +25,7 @@
 
   <div class="card">
     @if (loadState() === 'failed') {
-      <div class="load-error" role="alert">
-        <p class="load-error-text">
-          Couldn't reach the server, so there's nothing to show. Check the
-          backend is running on localhost:8000.
-        </p>
-        <button class="btn" (click)="retryLoad()">Try again</button>
-      </div>
+      <app-load-error-panel (retry)="retryLoad()" />
     } @else if (loadState() === 'ready') {
     <ul class="list">
       @for (task of sortedTasks(); track task.id) {

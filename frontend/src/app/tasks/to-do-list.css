@@ -18,19 +18,5 @@ li:hover .row-actions { opacity: 1; }
   border-bottom: none;
 }
 
-/* The initial GET failed — replaces the list entirely, because we have no
-   idea what the tasks are. */
-.load-error {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 26px 20px;
-}
-
-.load-error-text {
-  margin: 0;
-  max-width: 46ch;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
+/* The failed-GET styling moved to core/load-error-panel.ts, which owns both
+   the markup and the CSS now that habits and journal need it too. */

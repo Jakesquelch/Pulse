@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { Habit } from './habit.model';
 import { HabitService } from './habit.service';
 import { toLocalDate } from '../core/util/date';
+import { ServerErrorBanner } from '../core/server-error-banner';
+import { LoadErrorPanel } from '../core/load-error-panel';
 
 @Component({
   selector: 'app-habit-tracker',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, ServerErrorBanner, LoadErrorPanel],
   templateUrl: './habit-tracker.html',
   styleUrl: './habit-tracker.css',
 })
@@ -16,6 +18,8 @@ export class HabitTracker {
   private habitService = inject(HabitService);
 
   habits = this.habitService.habits;
+  loadState = this.habitService.loadState;
+  actionError = this.habitService.actionError;
   newHabitName = '';
   today = toLocalDate(new Date());
   // Last 7 days, oldest first, e.g. { date: "2026-07-03", label: "Fri", dayNum: 3 }.
@@ -47,6 +51,10 @@ export class HabitTracker {
 
   deleteHabit(id: string) {
     this.habitService.deleteHabit(id);
+  }
+
+  retryLoad() {
+    this.habitService.loadHabits();
   }
 
   toggleDay(habit: Habit, date: string) {

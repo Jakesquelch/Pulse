@@ -5,11 +5,19 @@ import { Task, TaskGroup } from './task.model';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { TaskService } from './task.service';
 import { ServerErrorBanner } from '../core/server-error-banner';
+import { LoadErrorPanel } from '../core/load-error-panel';
 
 @Component({
   selector: 'app-to-do-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, TitleCasePipe, ServerErrorBanner],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    TitleCasePipe,
+    ServerErrorBanner,
+    LoadErrorPanel,
+  ],
   templateUrl: './to-do-list.html',
   styleUrl: './to-do-list.css',
 })

@@ -10,8 +10,8 @@ import storage
 
 app = FastAPI()
 
-# Tasks now live in a SQLite file rather than a list in memory, so they survive
-# a restart. Creating the table at startup means a fresh clone (or a deleted
+# Data now lives in a SQLite file rather than a list in memory, so it survives
+# a restart. Creating the tables at startup means a fresh clone (or a deleted
 # pulse.db) just works — CREATE TABLE IF NOT EXISTS makes it a no-op otherwise.
 storage.init_db()
 
@@ -24,6 +24,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- Tasks ------------------------------------------------------------------
+#
+# Three models for one resource, because "a task" means something different at
+# each end of a request: what the client may send to create one, what it may
+# send to change one, and what the server hands back. Collapsing them into a
+# single model is how servers end up letting clients set their own ids.
+#
+# Each one mirrors a type in frontend/src/app/tasks/task.model.ts — that
+# pairing is the contract, and CLAUDE.md's rule about not loosening it lives
+# right here.
 
 # A whole task as the API hands it back — the mirror of the frontend's `Task`
 # interface. Declaring it as each endpoint's response_model means FastAPI
@@ -38,6 +49,12 @@ class Task(BaseModel):
     priority: Literal["low", "medium", "high"]
     group: Literal["fun", "personal", "work"] | None = None
 
+# What the client may send to create a task. `id` and `completed` are absent
+# on purpose: the server generates one and knows the other is False, and a
+# field that isn't modelled is a field Pydantic silently drops — so a client
+# trying to set either is ignored rather than obeyed. `priority` has a default
+# because "medium" is a sane assumption; `title` has none, so omitting it is
+# a 422 rather than a task called "".
 class TaskCreate(BaseModel):
     title: str
     priority: Literal["low", "medium", "high"] = "medium"

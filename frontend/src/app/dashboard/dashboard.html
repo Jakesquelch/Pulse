@@ -51,7 +51,7 @@
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 1.8c.4 2.4-2.8 3.4-2.8 6a2.8 2.8 0 0 0 5.6 0c0-1-.4-1.8-.9-2.5-.3 .7-.8 1.1-1.4 1.2 .6-1.5 .2-3.4-.5-4.7z"/></svg>
         Habits today
       </p>
-      <p class="value">{{ habitsDoneToday() }} of {{ habits().length }}</p>
+      <p class="value">{{ habitSummary() }}</p>
       <div class="dots">
         @for (habit of habits(); track habit.id) {
           <i [class.on]="isDoneToday(habit.completedDates)"></i>
@@ -68,7 +68,7 @@
     @if (taskLoadState() === 'failed') {
       <div class="up-next-error">
         <p class="empty" style="padding: 4px 0">
-          Couldn't reach the server, so we don't know what's waiting on you.
+          Couldn't reach the server, so we don't know what's waiting on you. Check the backend is running on localhost:8000.
         </p>
         <button class="btn" (click)="retryLoad()">Try again</button>
       </div>

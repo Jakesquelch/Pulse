@@ -68,11 +68,21 @@ export class Dashboard {
   });
 
   // --- Habits ---
+  // Now that habits come from the server too, this tile has exactly the same
+  // trap as the task tiles above: "0 of 0" reads as a real answer when it's
+  // really "we couldn't ask". Same fix, same shape.
   habits = this.habitService.habits;
+  private habitsUnavailable = computed(() => this.habitService.loadState() === 'failed');
+
   habitsDoneToday = computed(() => {
     const today = toLocalDate(new Date());
     return this.habitService.habits().filter((h) => h.completedDates.includes(today)).length;
   });
+  habitSummary = computed(() =>
+    this.habitsUnavailable()
+      ? 'Unavailable'
+      : `${this.habitsDoneToday()} of ${this.habits().length}`
+  );
 
   isDoneToday(completedDates: string[]): boolean {
     return completedDates.includes(toLocalDate(new Date()));
