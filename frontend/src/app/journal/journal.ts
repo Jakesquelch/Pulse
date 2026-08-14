@@ -3,17 +3,21 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { JournalEntry } from './journal-entry.model';
 import { JournalService } from './journal.service';
+import { ServerErrorBanner } from '../core/server-error-banner';
+import { LoadErrorPanel } from '../core/load-error-panel';
 
 @Component({
   selector: 'app-journal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ServerErrorBanner, LoadErrorPanel],
   templateUrl: './journal.html',
   styleUrl: './journal.css',
 })
 export class Journal {
   private journalService = inject(JournalService);
 
+  loadState = this.journalService.loadState;
+  actionError = this.journalService.actionError;
   newEntryContent = '';
   editingEntryId: string | null = null;
   editEntryContent = '';
@@ -33,6 +37,10 @@ export class Journal {
 
   deleteEntry(id: string) {
     this.journalService.deleteEntry(id);
+  }
+
+  retryLoad() {
+    this.journalService.loadEntries();
   }
 
   editEntry(entry: JournalEntry) {

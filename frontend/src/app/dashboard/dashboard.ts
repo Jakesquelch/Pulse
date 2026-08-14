@@ -61,10 +61,26 @@ export class Dashboard {
   });
 
   // --- Journal ---
+  // Third feature, same trap as the two above: "0 entries / nothing written
+  // yet" is a claim about an empty journal, not about an unreachable server.
+  private journalUnavailable = computed(() => this.journalService.loadState() === 'failed');
+
   entryCount = computed(() => this.journalService.entries().length);
+  journalSummary = computed(() =>
+    this.journalUnavailable()
+      ? 'Unavailable'
+      : `${this.entryCount()} ${this.entryCount() === 1 ? 'entry' : 'entries'}`
+  );
+  // The service returns entries oldest-first, so the last one is the newest.
   lastEntry = computed(() => {
     const entries = this.journalService.entries();
     return entries.length ? entries[entries.length - 1] : null;
+  });
+  // Three states, not two: the most recent entry's date, "nothing written
+  // yet", or nothing at all when we couldn't ask.
+  journalHint = computed(() => {
+    if (this.journalUnavailable()) return null;
+    return this.lastEntry() ? null : 'nothing written yet';
   });
 
   // --- Habits ---

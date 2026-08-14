@@ -1,5 +1,9 @@
 <section class="page">
-  <p class="eyebrow">{{ sortedEntries().length }} {{ sortedEntries().length === 1 ? 'entry' : 'entries' }}</p>
+  <!-- Only once the GET has landed: "0 entries" is a claim about a journal we
+       haven't managed to read yet. -->
+  @if (loadState() === 'ready') {
+    <p class="eyebrow">{{ sortedEntries().length }} {{ sortedEntries().length === 1 ? 'entry' : 'entries' }}</p>
+  }
   <h1 class="page-title">Journal</h1>
   <p class="page-sub">No structure required. Just let your mind wonder and get your thoughts out and into writing.</p>
 
@@ -10,35 +14,46 @@
     </div>
   </div>
 
-  @for (entry of sortedEntries(); track entry.id) {
-    <article class="card entry">
-      <p class="entry-date">
-        {{ entry.createdAt | date: 'EEE d MMM · h:mm a' }}
-        @if (editingEntryId !== entry.id) {
-          <span class="row-actions">
-            <button class="icon-btn" (click)="editEntry(entry)">Edit</button>
-            <button class="icon-btn danger" (click)="deleteEntry(entry.id)">Delete</button>
-          </span>
-        }
-      </p>
-      @if (editingEntryId === entry.id) {
-        <div class="entry-edit">
-          <textarea class="field" [(ngModel)]="editEntryContent" rows="4"></textarea>
-          <div class="composer-row">
-            <button class="icon-btn" (click)="saveEntry(entry)">Save</button>
-            <button class="icon-btn" (click)="cancelEdit()">Cancel</button>
-          </div>
-        </div>
-      }
-      @if (editingEntryId !== entry.id) {
-        <p class="entry-body">{{ entry.content }}</p>
-      }
-    </article>
-  }
+  <!-- A write failed. The entries below are still accurate, so they stay on
+       screen and this sits above them. Renders nothing when there's no error. -->
+  <app-server-error-banner [message]="actionError()" />
 
-  @if (sortedEntries().length === 0) {
-    <p class="empty" style="padding-left: 0">
-      Your first entry is waiting to be written.
-    </p>
+  @if (loadState() === 'failed') {
+    <div class="card">
+      <app-load-error-panel (retry)="retryLoad()" />
+    </div>
+  } @else if (loadState() === 'ready') {
+    @for (entry of sortedEntries(); track entry.id) {
+      <article class="card entry">
+        <p class="entry-date">
+          {{ entry.createdAt | date: 'EEE d MMM · h:mm a' }}
+          @if (editingEntryId !== entry.id) {
+            <span class="row-actions">
+              <button class="icon-btn" (click)="editEntry(entry)">Edit</button>
+              <button class="icon-btn danger" (click)="deleteEntry(entry.id)">Delete</button>
+            </span>
+          }
+        </p>
+        @if (editingEntryId === entry.id) {
+          <div class="entry-edit">
+            <textarea class="field" [(ngModel)]="editEntryContent" rows="4"></textarea>
+            <div class="composer-row">
+              <button class="icon-btn" (click)="saveEntry(entry)">Save</button>
+              <button class="icon-btn" (click)="cancelEdit()">Cancel</button>
+            </div>
+          </div>
+        }
+        @if (editingEntryId !== entry.id) {
+          <p class="entry-body">{{ entry.content }}</p>
+        }
+      </article>
+    } @empty {
+      <!-- @empty rather than a separate length check: it can only run inside
+           the 'ready' branch, so it can't say this before we know. -->
+      <p class="empty" style="padding-left: 0">
+        Your first entry is waiting to be written.
+      </p>
+    }
   }
+  <!-- 'loading' renders nothing on purpose, same as the other two pages. -->
 </section>

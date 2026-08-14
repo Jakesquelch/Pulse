@@ -37,12 +37,12 @@
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 2.5h8.5A1.5 1.5 0 0 1 13 4v9.5a1 1 0 0 0-1-1H3z"/><path d="M3 2.5v10a1 1 0 0 0 1 1h9"/></svg>
         Journal
       </p>
-      <p class="value">{{ entryCount() }} {{ entryCount() === 1 ? 'entry' : 'entries' }}</p>
+      <p class="value">{{ journalSummary() }}</p>
       @if (lastEntry()) {
         <p class="hint">last one {{ lastEntry()!.createdAt | date: 'd MMM, h:mm a' }}</p>
       }
-      @if (!lastEntry()) {
-        <p class="hint">nothing written yet</p>
+      @if (journalHint()) {
+        <p class="hint">{{ journalHint() }}</p>
       }
     </a>
 
