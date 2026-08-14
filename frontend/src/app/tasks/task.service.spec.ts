@@ -279,5 +279,5 @@ describe('TaskService', () => {
 
 // The localStorage tests that used to live in this file are gone with the
 // persistence they described — TaskService no longer touches localStorage.
-// persistedSignal itself is still covered by core/persisted-signal.spec.ts,
-// which habits and journal still rely on.
+// As of the journal migration, neither does anything else: persistedSignal
+// and its spec are deleted, and the server is the only store there is.
