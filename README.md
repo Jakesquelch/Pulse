@@ -1,4 +1,7 @@
 # Pulse
+
+https://github.com/user-attachments/assets/26d65307-dca0-44ad-9ca3-06e8628bb3a7
+
 So this projects goal is to be a personal productivity web application designed to help me manage my daily life. I've always been quite an organised person. I like to have systems in place to help me dump information from my brain and get it down somewhere. So I have 3 core modules apart of this project, that I find useful and use day-to-day:
 
 1. **To-Do List** - Task management with priorities and grouping
